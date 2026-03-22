@@ -5,13 +5,13 @@ class ModelParams:
     """
 
     def __init__(
-            self,
-            n_da: int,
-            n_steps: int,
-            gamma: float,
-            lambda_sparse: float,
-            lr: float,
-            batch_size: int,
+        self,
+        n_da: int,
+        n_steps: int,
+        gamma: float,
+        lambda_sparse: float,
+        lr: float,
+        batch_size: int,
     ):
         """
         Initializes the ModelParams with the given parameters for the TabNet model.

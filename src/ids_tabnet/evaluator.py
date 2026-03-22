@@ -3,8 +3,8 @@ from pytorch_tabnet.tab_model import TabNetClassifier
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 
-from .params import ModelParams
-from ..helpers.file_loader import load_csv
+from helpers.file_loader import load_csv
+from ids_tabnet.params import ModelParams
 
 
 class TabNetEvaluator:
@@ -31,13 +31,21 @@ class TabNetEvaluator:
 
         # First split: separate out the Test set (20%)
         X_temp, self.X_test, y_temp, self.y_test = train_test_split(
-            X, y, test_size=0.2, stratify=y, random_state=42,
+            X,
+            y,
+            test_size=0.2,
+            stratify=y,
+            random_state=42,
         )
 
         # Second split: split the remaining 80% into Train (60%) and Val (20%)
         # test_size=0.25 here means 25% of the 80%, which is 20% of the total.
         self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(
-            X_temp, y_temp, test_size=0.25, stratify=y_temp, random_state=42,
+            X_temp,
+            y_temp,
+            test_size=0.25,
+            stratify=y_temp,
+            random_state=42,
         )
 
     def evaluate(self, params: ModelParams) -> float:
@@ -62,7 +70,9 @@ class TabNetEvaluator:
             X_train=self.X_train,
             y_train=self.y_train,
             eval_set=[(self.X_val, self.y_val)],
-            eval_metric=['balanced_accuracy'],  # Closer to Macro F1 than accuracy; both penalize minority class neglect
+            eval_metric=[
+                "balanced_accuracy"
+            ],  # Closer to Macro F1 than accuracy; both penalize minority class neglect
             weights=1,  # weighted sampling to handle class imbalance
             max_epochs=20,  # Keep low for fast evolution
             patience=5,  # Early stopping to prevent overfitting and save time during evolution
@@ -75,4 +85,4 @@ class TabNetEvaluator:
 
         # Calculate and return Macro F1-Score - We use Macro because it averages the F1 of each class independently.
         # zero_division=0 prevents warnings when a model fails to predict rare classes.
-        return f1_score(self.y_test, y_pred, average='macro', zero_division=0)
+        return f1_score(self.y_test, y_pred, average="macro", zero_division=0)
