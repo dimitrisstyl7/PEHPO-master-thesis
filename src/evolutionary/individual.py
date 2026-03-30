@@ -23,11 +23,7 @@ class Individual:
             raise ValueError("Please provide a search space.")
 
         self.search_space = search_space
-
-        if genes is None:
-            self.genes = self.__generate_random_genes()
-        else:
-            self.genes = genes
+        self.genes = self.__generate_random_genes() if genes is None else genes
         self.fitness = 0.0
 
     def __generate_random_genes(self) -> dict:
