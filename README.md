@@ -1,5 +1,9 @@
 # PEHPO-master-thesis
 
+## Python version
+
+Use **Python 3.13.x** (same as [CI workflow](./.github/workflows/docs.yml)).
+
 ## Clone repository
 
 ```bash
