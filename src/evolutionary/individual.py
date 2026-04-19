@@ -1,3 +1,5 @@
+"""Individual representation and mutation logic for evolutionary search."""
+
 import random
 
 from evolutionary.config import MUTATION_RATE, SUB_AREAS_NUMBER
@@ -15,9 +17,12 @@ class Individual:
         """
         Initializes an Individual with either provided genes or randomly generated ones.
 
-        :param search_space: A dictionary describing the valid range and type for each gene.
-        :param genes: Optional dictionary of gene values. If None, random genes are generated.
-        :raises ValueError: If search_space is None.
+        Args:
+            search_space: Dictionary describing valid range and type for each gene.
+            genes: Optional gene dictionary. If `None`, random genes are generated.
+
+        Raises:
+            ValueError: If `search_space` is `None`.
         """
         if search_space is None:
             raise ValueError("Please provide a search space.")
@@ -30,7 +35,8 @@ class Individual:
         """
         Generates a random valid gene configuration based on the search space.
 
-        :return: A dictionary mapping each gene name to a randomly sampled value.
+        Returns:
+            Dictionary mapping each gene name to a randomly sampled value.
         """
         new_genes = {}
         for key, bounds in self.search_space.items():
@@ -49,8 +55,9 @@ class Individual:
         k sub-areas. A new value is then sampled from a randomly selected sub-area, favoring smaller
         perturbations while still allowing larger jumps.
 
-        :param mutation_rate: The probability that each gene will be mutated. Default is MUTATION_RATE.
-        :param k: Number of sub-areas to divide the mutation range into. Default is SUB_AREAS_NUMBER.
+        Args:
+            mutation_rate: Probability that each gene will be mutated. Default is `MUTATION_RATE`.
+            k: Number of sub-areas used for mutation range partitioning. Default is `SUB_AREAS_NUMBER`.
         """
         for key, value in self.genes.items():
             if random.random() > mutation_rate:
