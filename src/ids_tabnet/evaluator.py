@@ -1,3 +1,5 @@
+"""Model evaluation utilities for TabNet-based IDS experiments."""
+
 import torch
 from pytorch_tabnet.tab_model import TabNetClassifier
 from sklearn.metrics import f1_score
@@ -23,7 +25,9 @@ class TabNetEvaluator:
 
         The input CSV file must have a 'Label' column.
 
-        :param dataset_path: The path to the dataset CSV file. Default is "datasets/cicids2017_cleaned.csv".
+        Args:
+            dataset_path: Path to the dataset CSV file.
+                Default is `"datasets/cicids2017_cleaned.csv"`.
         """
         df = load_csv(dataset_path)
         X = df.drop(columns=["Label"]).to_numpy()
@@ -51,8 +55,12 @@ class TabNetEvaluator:
     def evaluate(self, params: ModelParams) -> float:
         """
         Trains a TabNetClassifier with the given model parameters and evaluates it on the test set.
-        :param params: A ModelParams instance containing the hyperparameters for the TabNet model.
-        :return: The Macro F1-Score of the model on the test set.
+
+        Args:
+            params: ModelParams instance containing TabNet hyperparameters.
+
+        Returns:
+            Macro F1-score of the model on the test set.
         """
         clf = TabNetClassifier(
             n_d=int(params.n_da),

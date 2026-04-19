@@ -1,3 +1,6 @@
+"""Parameter container for TabNet model configuration."""
+
+
 class ModelParams:
     """
     A class to hold the hyperparameters for the TabNet model.
@@ -15,19 +18,20 @@ class ModelParams:
     ):
         """
         Initializes the ModelParams with the given parameters for the TabNet model.
-        :param n_da: Width of the decision prediction layer (n_d) and attention embedding (n_a).
-            Bigger values give more capacity to the model with the risk of overfitting.
-            Values typically range from 8 to 64. According to the paper, n_d=n_a is usually a good choice.
-        :param n_steps: Number of steps in the TabNet architecture (usually between 3 and 10).
-        :param gamma: Coefficient for feature reusage in the masks. A value close to 1 will make mask
-            selection least correlated between layers. Values range from 1.0 to 2.0.
-        :param lambda_sparse: Extra sparsity loss coefficient. The bigger this coefficient is,
-            the sparser the model will be in terms of feature selection. Reducing this value could help
-            depending on the difficulty of the problem.
-        :param lr: Initial learning rate used for the optimizer. A large initial learning rate with decay
-            is recommended as per the original paper.
-        :param batch_size: Number of samples per batch used during training.
-        :raises ValueError: If gamma is not between 1.0 and 2.0.
+
+        Args:
+            n_da: Width of the decision prediction layer (`n_d`) and attention embedding (`n_a`).
+                Bigger values give more capacity with higher overfitting risk. Typical range is 8 to 64.
+                According to the paper, `n_d = n_a` is usually a good choice.
+            n_steps: Number of steps in the TabNet architecture (usually between 3 and 10).
+            gamma: Coefficient for feature reusage in masks. Values close to 1 make mask selection less
+                correlated between layers. Valid range is 1.0 to 2.0.
+            lambda_sparse: Extra sparsity loss coefficient. Higher values enforce sparser feature selection.
+            lr: Initial optimizer learning rate. A large initial value with decay is recommended in the paper.
+            batch_size: Number of samples per training batch.
+
+        Raises:
+            ValueError: If `gamma` is not between 1.0 and 2.0.
         """
         if gamma < 1.0 or gamma > 2.0:
             raise ValueError("Gamma should be between 1.0 and 2.0.")

@@ -1,3 +1,5 @@
 scikit-learn
 pandas
 pytorch-tabnet
+pdoc3
+black
