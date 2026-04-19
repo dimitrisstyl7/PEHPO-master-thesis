@@ -21,7 +21,7 @@ cd PEHPO-master-thesis
        ```
     - On Windows (PowerShell 7+)
         ```powershell
-        python -m venv .venv && .\.venv\Scripts\Activate.ps1
+        python -m venv .venv && .venv\Scripts\Activate.ps1
         ```
 
 ## Install dependency tooling ([pip-tools](https://pypi.org/project/pip-tools/))
