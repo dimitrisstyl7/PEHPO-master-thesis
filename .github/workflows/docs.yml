@@ -1,0 +1,79 @@
+name: docs
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "src/**"
+      - "scripts/generate_docs/**"
+      - "requirements.in"
+      - "requirements.txt"
+      - ".github/workflows/docs.yml"
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - "src/**"
+      - "scripts/generate_docs/**"
+      - "requirements.in"
+      - "requirements.txt"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Create virtual environment
+        run: |
+          python -m venv .venv
+
+      - name: Install dependency tooling
+        run: |
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/python -m pip install pip-tools
+
+      - name: Install project dependencies
+        run: |
+          .venv/bin/pip-sync requirements.txt
+
+      - name: Generate docs
+        run: |
+          bash scripts/generate_docs/generate_docs.sh
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs
+
+  deploy-pages:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build-docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
