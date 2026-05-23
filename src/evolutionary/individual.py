@@ -13,7 +13,7 @@ class Individual:
     and stores its fitness score.
     """
 
-    def __init__(self, search_space: dict, genes: dict = None):
+    def __init__(self, search_space: dict, genes: dict | None = None):
         """
         Initializes an Individual with either provided genes or randomly generated ones.
 
