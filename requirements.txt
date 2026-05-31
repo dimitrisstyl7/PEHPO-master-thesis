@@ -39,6 +39,7 @@ networkx==3.6.1
 numpy==2.4.4
     # via
     #   pandas
+    #   pandas-stubs
     #   pytorch-tabnet
     #   scikit-learn
     #   scipy
@@ -84,6 +85,8 @@ nvidia-nvtx==13.0.85
 packaging==26.1
     # via black
 pandas==3.0.2
+    # via -r requirements.in
+pandas-stubs==3.0.3.260530
     # via -r requirements.in
 pathspec==1.0.4
     # via black
