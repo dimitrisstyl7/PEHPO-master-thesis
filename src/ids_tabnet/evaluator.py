@@ -1,12 +1,14 @@
 """Model evaluation utilities for TabNet-based IDS experiments."""
 
+import typing
+
 import torch
+from helpers.file_loader import load_csv
+from ids_tabnet.params import ModelParams
+from pandas.core.frame import DataFrame
 from pytorch_tabnet.tab_model import TabNetClassifier
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
-
-from helpers.file_loader import load_csv
-from ids_tabnet.params import ModelParams
 
 
 class TabNetEvaluator:
@@ -29,7 +31,7 @@ class TabNetEvaluator:
             dataset_path: Path to the dataset CSV file.
                 Default is `"datasets/cicids2017_cleaned.csv"`.
         """
-        df = load_csv(dataset_path)
+        df = typing.cast(DataFrame, load_csv(dataset_path))
         X = df.drop(columns=["Label"]).to_numpy()
         y = df["Label"].to_numpy()
 

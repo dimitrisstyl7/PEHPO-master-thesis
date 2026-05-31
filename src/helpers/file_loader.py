@@ -3,9 +3,11 @@
 import os
 
 import pandas as pd
+from pandas import DataFrame
+from pandas.io.parsers import TextFileReader
 
 
-def load_csv(file_path: str) -> pd.DataFrame:
+def load_csv(file_path: str) -> TextFileReader | DataFrame:
     """
     Verifies the existence of a CSV file and loads it into a pandas DataFrame.
 
@@ -13,7 +15,7 @@ def load_csv(file_path: str) -> pd.DataFrame:
         file_path: Absolute or relative path to the CSV file.
 
     Returns:
-        DataFrame containing CSV data.
+        Parsed CSV contents.
 
     Raises:
         FileNotFoundError: If the specified path does not exist.
