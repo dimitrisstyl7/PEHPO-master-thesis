@@ -15,8 +15,8 @@ class Individual:
     """
     Represents an individual solution in the evolutionary search.
 
-    Each individual holds a dictionary of genes constrained by a provided search space
-    and stores its fitness score.
+    Each individual holds a dictionary of genes constrained by a provided search space,
+    stores its fitness score, and carries a unique id.
     """
 
     def __init__(
@@ -28,6 +28,7 @@ class Individual:
     ):
         """
         Initializes an Individual with either provided genes or randomly generated ones.
+        Assigns a unique id via random uuid4 for traceability.
 
         Args:
             search_space: Dictionary describing valid range and type for each gene.
@@ -46,6 +47,7 @@ class Individual:
         self.mutation_rate = mutation_rate
         self.sub_areas_number = sub_areas_number
         self.fitness = 0.0
+        self.id = uuid.uuid4().hex
 
     def _generate_random_genes(self) -> dict[str, int | float]:
         """
