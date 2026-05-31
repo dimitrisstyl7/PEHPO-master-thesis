@@ -3,3 +3,4 @@ pandas
 pytorch-tabnet
 pdoc3
 black
+pandas-stubs
