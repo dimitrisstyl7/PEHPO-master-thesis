@@ -2,7 +2,7 @@
 
 ## Python version
 
-Use **Python 3.13.x** (same as [CI workflow](./.github/workflows/docs.yml)).
+Python 3.13.x
 
 ## Clone repository
 
