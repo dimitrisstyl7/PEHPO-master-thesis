@@ -31,7 +31,9 @@ class SelfAdaptiveSBX:
         self._memory: dict[str, list[float]] = {}
 
     def crossover(
-            self, parent_1: Individual, parent_2: Individual,
+        self,
+        parent_1: Individual,
+        parent_2: Individual,
     ) -> tuple[Individual, Individual]:
         """
         Perform SBX crossover and record per-gene spread factors.
@@ -43,6 +45,7 @@ class SelfAdaptiveSBX:
 
         This method is stochastic and uses the `random` module.
         """
+        # Create children as copies of parents to inherit search space, rates, and initial genes
         child_1 = Individual(
             search_space=parent_1.search_space,
             mutation_rate=parent_1.mutation_rate,
@@ -56,20 +59,25 @@ class SelfAdaptiveSBX:
             genes=parent_2.genes.copy(),
         )
 
+        # Initialize memory slots — will accumulate β_q values per gene
         self._memory[child_1.id] = []
         self._memory[child_2.id] = []
 
         for key in child_1.search_space.keys():
+            # Sample uniform random variable and compute spread factor β_q
             u = random.random()
             beta_q = self._calculate_spread_factor(u)
             child_1_gene, child_2_gene = self._calculate_genes(
-                beta_q, child_1.genes[key], child_2.genes[key],
+                beta_q,
+                child_1.genes[key],
+                child_2.genes[key],
             )
             entry = child_1.search_space[key]
             gene_type = entry["type"]
             lower = entry["min"]
             upper = entry["max"]
 
+            # Enforce type constraints and clamp to search space bounds
             if gene_type is int:
                 child_1_gene = int(round(child_1_gene))
                 child_2_gene = int(round(child_2_gene))
@@ -82,17 +90,19 @@ class SelfAdaptiveSBX:
 
             child_1.genes[key] = child_1_gene
             child_2.genes[key] = child_2_gene
+
+            # Record β_q for both children for later η_c adaptation
             self._memory[child_1.id].append(beta_q)
             self._memory[child_2.id].append(beta_q)
 
         return child_1, child_2
 
     def update_etas(
-            self,
-            parent_1: Individual,
-            parent_2: Individual,
-            child_1: Individual,
-            child_2: Individual,
+        self,
+        parent_1: Individual,
+        parent_2: Individual,
+        child_1: Individual,
+        child_2: Individual,
     ) -> None:
         """
         Update the distribution index using the winning child and stored spread
@@ -105,6 +115,7 @@ class SelfAdaptiveSBX:
         best_child = child_1 if child_1.fitness >= child_2.fitness else child_2
         best_parent = parent_1 if parent_1.fitness >= parent_2.fitness else parent_2
 
+        # No fitness change — skip adaptation and clean up memory
         if best_child.fitness == best_parent.fitness:
             self._memory.pop(child_1.id, None)
             self._memory.pop(child_2.id, None)
@@ -117,26 +128,29 @@ class SelfAdaptiveSBX:
         proposed_etas: list[float] = []
         child_is_better = best_child.fitness > best_parent.fitness
 
+        # Compute a proposed η_c update for each stored β_q value
         for beta_q in beta_values:
-            if beta_q > 1:
+            if beta_q > 1:  # Standard case: offspring spread beyond parent midpoint
                 numerator = math.log(beta_q)
                 if child_is_better:
                     denominator = math.log(1 + self._alpha * (beta_q - 1))
                 else:
                     denominator = math.log(1 + (beta_q - 1) / self._alpha)
                 eta_prime = -1 + (self._eta_c + 1) * (numerator / denominator)
-            else:
+            else:  # β_q ≤ 1: offspring collapsed near parent midpoint — use closed-form update
                 if child_is_better:
                     eta_prime = (self._eta_c + 1) / self._alpha - 1
                 else:
                     eta_prime = self._alpha * (self._eta_c + 1) - 1
             proposed_etas.append(eta_prime)
 
+        # Average all proposed updates and clamp to valid η_c bounds
         average_eta = sum(proposed_etas) / len(proposed_etas)
         lower = self._eta_c_bounds["min"]
         upper = self._eta_c_bounds["max"]
         self._eta_c = min(max(average_eta, lower), upper)
 
+        # Clear memory for both children regardless of which was used for the update
         self._memory.pop(child_1.id, None)
         self._memory.pop(child_2.id, None)
 
@@ -153,7 +167,9 @@ class SelfAdaptiveSBX:
 
     @staticmethod
     def _calculate_genes(
-            beta_q: float, child_1_gene: int | float, child_2_gene: int | float,
+        beta_q: float,
+        child_1_gene: int | float,
+        child_2_gene: int | float,
     ) -> tuple[int | float, int | float]:
         """
         Compute offspring gene values using the SBX midpoint–step decomposition.
