@@ -1,0 +1,183 @@
+"""Genetic algorithm orchestrator for evolutionary hyperparameter optimization."""
+
+import random
+from collections.abc import Callable
+
+from evolutionary.individual import Individual, SearchSpaceEntry
+from evolutionary.self_adaptive_SBX import SelfAdaptiveSBX
+
+
+class GeneticAlgorithm:
+    """
+    Orchestrates a generational genetic algorithm with SBX crossover and elitism.
+
+    Wires together population initialization, tournament selection, self-adaptive
+    SBX crossover, GLEAM mutation, and elitism into a full generational loop.
+    The objective function is injected at construction time, keeping the GA
+    independent of any specific evaluation domain.
+    """
+
+    def __init__(
+        self,
+        objective_fn: Callable[[dict[str, int | float]], float],
+        search_space: dict[str, SearchSpaceEntry],
+        population_size: int,
+        max_generations: int,
+        tournament_size: int,
+        mutation_rate: float,
+        sub_areas_number: int,
+        elites_count: int = 1,
+        verbose: bool = True,
+    ):
+        """
+        Configure the GA and instantiate the SBX crossover operator.
+
+        Args:
+            objective_fn: Maps a gene dict to a scalar fitness score.
+                Called once per individual per generation; higher is better.
+            search_space: Bounds and type constraints for each hyperparameter gene.
+            population_size: Number of individuals maintained across generations.
+            max_generations: Total number of generational cycles to execute.
+            tournament_size: Number of candidates drawn per tournament selection event.
+            mutation_rate: Per-gene mutation probability applied to each child.
+            sub_areas_number: GLEAM partition count for bounded perturbation range.
+            elites_count: Top individuals carried over untouched each generation.
+            verbose: If `True`, prints the best fitness and η_c after each generation.
+        """
+        self._objective_fn = objective_fn
+        self._search_space = search_space
+        self._population_size = population_size
+        self._max_generations = max_generations
+        self._tournament_size = tournament_size
+        self._mutation_rate = mutation_rate
+        self._sub_areas_number = sub_areas_number
+        self._elites_count = elites_count
+        self._verbose = verbose
+        self._crossover = SelfAdaptiveSBX()  # type: ignore[no-untyped-call]
+
+    def _initialize_population(self) -> list[Individual]:
+        """
+        Create the initial generation of randomly-initialized individuals.
+
+        Returns:
+            `population_size` individuals with genes sampled uniformly
+            from the search space bounds.
+        """
+        return [
+            Individual(
+                search_space=self._search_space,
+                mutation_rate=self._mutation_rate,
+                sub_areas_number=self._sub_areas_number,
+            )
+            for _ in range(self._population_size)
+        ]
+
+    def _evaluate_population(self, population: list[Individual]) -> None:
+        """
+        Assign fitness scores to each individual via the objective function.
+
+        Mutates each individual's `.fitness` attribute in place. Elites should
+        **not** be passed here — their fitness from the prior generation is valid.
+        """
+        for individual in population:
+            individual.fitness = self._objective_fn(individual.genes)
+
+    def _tournament_selection(self, population: list[Individual]) -> Individual:
+        """
+        Select one parent via k-tournament selection.
+
+        Draws `tournament_size` candidates without replacement and returns the
+        one with the highest fitness. Stochastic; uses `random.sample`.
+
+        Returns:
+            Highest-fitness individual among the sampled tournament candidates.
+        """
+        candidates = random.sample(population, self._tournament_size)
+        return max(candidates, key=lambda ind: ind.fitness)
+
+    def _get_elites(self, population: list[Individual]) -> list[Individual]:
+        """
+        Extract the top-performing individuals for guaranteed generational survival.
+
+        Genes are copied to prevent mutation aliasing when the elite is reused
+        as a parent in tournament selection during the same generation.
+
+        Returns:
+            `elites_count` highest-fitness individuals sorted descending by fitness.
+        """
+        sorted_pop = sorted(population, key=lambda ind: ind.fitness, reverse=True)
+        return [
+            Individual(
+                search_space=elite.search_space,
+                mutation_rate=elite.mutation_rate,
+                sub_areas_number=elite.sub_areas_number,
+                genes=elite.genes.copy(),
+            )
+            for elite in sorted_pop[: self._elites_count]
+        ]
+
+    def run(self) -> Individual:
+        """
+        Execute the full generational evolutionary loop.
+
+        **Algorithm per generation:**
+
+        1. Extract elites (carried over untouched, fitness retained).
+        2. Fill the remainder: tournament select → Self-Adaptive SBX crossover → mutate.
+        3. Evaluate only the new children.
+        4. Update η_c for each parent–child pair via `SelfAdaptiveSBX.update_etas()`.
+        5. Clear the pair buffer.
+        6. Replace population with elites + trimmed children.
+        7. Track the global best individual across all generations.
+
+        Returns:
+            Individual with the highest fitness observed across all generations.
+        """
+        population = self._initialize_population()
+        self._evaluate_population(population)
+        best = max(
+            population, key=lambda ind: ind.fitness
+        )  # Global best across all generations
+
+        for generation in range(self._max_generations):
+            # Carry over elites untouched — their fitness from this generation remains valid
+            elites = self._get_elites(population)
+            children: list[Individual] = []
+            pairs: list[tuple[Individual, Individual, Individual, Individual]] = []
+
+            # Fill the remainder of the next generation via selection → crossover → mutation
+            target_children = self._population_size - self._elites_count
+            while len(children) < target_children:
+                parent_1 = self._tournament_selection(population)
+                parent_2 = self._tournament_selection(population)
+                child_1, child_2 = self._crossover.crossover(parent_1, parent_2)
+                child_1.mutate()
+                child_2.mutate()
+                children.extend([child_1, child_2])
+                pairs.append(
+                    (parent_1, parent_2, child_1, child_2)
+                )  # Store for η_c update
+
+            # Trim to exact target in case (population_size - elites_count) is odd
+            children = children[:target_children]
+            # Only evaluate new children — elites already carry valid fitness scores
+            self._evaluate_population(children)
+
+            # Adapt η_c based on whether each child outperformed its parents
+            for parent_1, parent_2, child_1, child_2 in pairs:
+                self._crossover.update_etas(parent_1, parent_2, child_1, child_2)
+            pairs.clear()  # Explicit cleanup — Individual refs accumulate across generations
+
+            population = elites + children
+            current_best = max(population, key=lambda ind: ind.fitness)
+            if current_best.fitness > best.fitness:
+                best = current_best
+
+            if self._verbose:
+                print(
+                    f"Generation {generation + 1}/{self._max_generations} | "
+                    f"Best fitness: {best.fitness:.4f} | "
+                    f"\u03b7_c: {self._crossover.eta_c:.4f}"
+                )
+
+        return best

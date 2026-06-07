@@ -30,6 +30,11 @@ class SelfAdaptiveSBX:
         self._eta_c_bounds = {"min": 0.0, "max": 50.0}
         self._memory: dict[str, list[float]] = {}
 
+    @property
+    def eta_c(self) -> float:
+        """Current distribution index η_c controlling offspring spread."""
+        return self._eta_c
+
     def crossover(
         self,
         parent_1: Individual,

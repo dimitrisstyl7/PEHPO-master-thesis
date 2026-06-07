@@ -5,7 +5,7 @@ import uuid
 from typing import TypedDict
 
 
-class _SearchSpaceEntry(TypedDict):
+class SearchSpaceEntry(TypedDict):
     min: int | float
     max: int | float
     type: type
@@ -21,7 +21,7 @@ class Individual:
 
     def __init__(
         self,
-        search_space: dict[str, _SearchSpaceEntry],
+        search_space: dict[str, SearchSpaceEntry],
         mutation_rate: float,
         sub_areas_number: int,
         genes: dict[str, int | float] | None = None,
