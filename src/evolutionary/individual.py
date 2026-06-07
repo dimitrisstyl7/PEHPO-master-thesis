@@ -54,7 +54,7 @@ class Individual:
         Generates a random valid gene configuration based on the search space.
 
         Returns:
-            Dictionary mapping each gene name to a randomly sampled value.
+            Gene configuration sampled uniformly within bounds, typed per the search space.
         """
         new_genes: dict[str, int | float] = {}
         for key, bounds in self.search_space.items():
@@ -66,14 +66,14 @@ class Individual:
 
     def mutate(self) -> None:
         """
-        Mutates the individual's genes using a GLEAM-inspired mutation strategy.
+        Mutates genes using a GLEAM-inspired bounded perturbation strategy.
 
-        Each gene has a probability of being mutated based on the mutation_rate. When a gene is selected
-        for mutation, the search space between the current value and the nearest boundary is divided into
-        k sub-areas. A new value is then sampled from a randomly selected sub-area, favoring smaller
-        perturbations while still allowing larger jumps.
-        This method is stochastic and uses the `random` module.
+        Per-gene mutation probability gates entry. For each selected gene:
 
+        - Direction is forced toward the nearer bound if at boundary, otherwise random.
+        - Distance to boundary is partitioned into `sub_areas_number` sub-areas (width δ).
+        - A random sub-area index *i* is drawn; new value sampled from `[a, a + δ·i]`.
+        - Integer genes that round to the same value are nudged by ±1 if within bounds.
         """
         for key, value in self.genes.items():
             if random.random() > self.mutation_rate:

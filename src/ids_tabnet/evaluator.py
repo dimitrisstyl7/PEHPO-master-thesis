@@ -13,11 +13,12 @@ from sklearn.model_selection import train_test_split
 
 class TabNetEvaluator:
     """
-    A class to evaluate the performance of a TabNet model on a given dataset. It loads the dataset, splits it into
-    training, validation, and testing sets (60/20/20), and provides a method to train and evaluate the model using
-    specified hyperparameters contained in a ModelParams instance.
+    Evaluates a TabNet classifier on a fixed train/val/test split.
 
-    The dataset is expected to contain a 'Label' column which is used as the target variable.
+    Loads a CSV dataset, applies a **60/20/20** stratified split on construction,
+    then exposes `evaluate()` to train and score a model for a given hyperparameter set.
+
+    The dataset must contain a `Label` column used as the classification target.
     """
 
     def __init__(self, dataset_path: str = "datasets/cicids2017_cleaned.csv"):
@@ -59,7 +60,7 @@ class TabNetEvaluator:
         Trains a TabNetClassifier with the given model parameters and evaluates it on the test set.
 
         Args:
-            params: ModelParams instance containing TabNet hyperparameters.
+            params: Hyperparameters for this TabNet evaluation run.
 
         Returns:
             Macro F1-score of the model on the test set.
@@ -81,7 +82,7 @@ class TabNetEvaluator:
             y_train=self.y_train,
             eval_set=[(self.X_val, self.y_val)],
             eval_metric=[
-                "balanced_accuracy"
+                "balanced_accuracy",
             ],  # Closer to Macro F1 than accuracy; both penalize minority class neglect
             weights=1,  # weighted sampling to handle class imbalance
             max_epochs=20,  # Keep low for fast evolution

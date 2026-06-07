@@ -31,7 +31,7 @@ class SelfAdaptiveSBX:
         self._memory: dict[str, list[float]] = {}
 
     def crossover(
-        self, parent_1: Individual, parent_2: Individual
+            self, parent_1: Individual, parent_2: Individual,
     ) -> tuple[Individual, Individual]:
         """
         Perform SBX crossover and record per-gene spread factors.
@@ -63,7 +63,7 @@ class SelfAdaptiveSBX:
             u = random.random()
             beta_q = self._calculate_spread_factor(u)
             child_1_gene, child_2_gene = self._calculate_genes(
-                beta_q, child_1.genes[key], child_2.genes[key]
+                beta_q, child_1.genes[key], child_2.genes[key],
             )
             entry = child_1.search_space[key]
             gene_type = entry["type"]
@@ -88,11 +88,11 @@ class SelfAdaptiveSBX:
         return child_1, child_2
 
     def update_etas(
-        self,
-        parent_1: Individual,
-        parent_2: Individual,
-        child_1: Individual,
-        child_2: Individual,
+            self,
+            parent_1: Individual,
+            parent_2: Individual,
+            child_1: Individual,
+            child_2: Individual,
     ) -> None:
         """
         Update the distribution index using the winning child and stored spread
@@ -142,8 +142,10 @@ class SelfAdaptiveSBX:
 
     def _calculate_spread_factor(self, u: float) -> float:
         """
-        Compute the spread factor from a uniform sample and the current distribution
-        index.
+        Compute the SBX spread factor β_q from a uniform sample `u` and `η_c`.
+
+        **Formula:** β_q = (2u)^(1/(η_c+1)) for u ≤ 0.5, else (1/(2(1−u)))^(1/(η_c+1)).
+        Higher `η_c` concentrates offspring closer to parents (smaller β_q).
         """
         exponent = 1 / (self._eta_c + 1)
         base = (2 * u) if u <= 0.5 else (1 / (2 * (1 - u)))
@@ -151,10 +153,13 @@ class SelfAdaptiveSBX:
 
     @staticmethod
     def _calculate_genes(
-        beta_q: float, child_1_gene: int | float, child_2_gene: int | float
+            beta_q: float, child_1_gene: int | float, child_2_gene: int | float,
     ) -> tuple[int | float, int | float]:
         """
-        Compute offspring genes from the spread factor and parent genes.
+        Compute offspring gene values using the SBX midpoint–step decomposition.
+
+        **Formula:** midpoint = (p1 + p2)/2, step = β_q·(p1 − p2)/2.
+        Child 1 = midpoint + step, child 2 = midpoint − step.
         """
         midpoint = 0.5 * (child_1_gene + child_2_gene)
         step = 0.5 * beta_q * (child_1_gene - child_2_gene)
