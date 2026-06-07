@@ -115,18 +115,18 @@ class SelfAdaptiveSBX:
             raise ValueError(f"Missing crossover memory for child id: {best_child.id}.")
 
         proposed_etas: list[float] = []
-        is_better = best_child.fitness > best_parent.fitness
+        child_is_better = best_child.fitness > best_parent.fitness
 
         for beta_q in beta_values:
             if beta_q > 1:
                 numerator = math.log(beta_q)
-                if is_better:
+                if child_is_better:
                     denominator = math.log(1 + self._alpha * (beta_q - 1))
                 else:
                     denominator = math.log(1 + (beta_q - 1) / self._alpha)
                 eta_prime = -1 + (self._eta_c + 1) * (numerator / denominator)
             else:
-                if is_better:
+                if child_is_better:
                     eta_prime = (self._eta_c + 1) / self._alpha - 1
                 else:
                     eta_prime = self._alpha * (self._eta_c + 1) - 1
