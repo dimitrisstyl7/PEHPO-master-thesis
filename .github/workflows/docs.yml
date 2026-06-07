@@ -1,23 +1,7 @@
 name: docs
 
 on:
-  push:
-    branches: [ "main" ]
-    paths:
-      - "src/**"
-      - "scripts/generate_docs/**"
-      - "requirements.in"
-      - "requirements.txt"
-      - ".github/workflows/docs.yml"
-  pull_request:
-    branches: [ "main" ]
-    paths:
-      - "src/**"
-      - "scripts/generate_docs/**"
-      - "requirements.in"
-      - "requirements.txt"
-      - ".github/workflows/docs.yml"
-  workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -42,8 +26,7 @@ jobs:
           python-version: "3.13"
 
       - name: Create virtual environment
-        run: |
-          python -m venv .venv
+        run: python -m venv .venv
 
       - name: Install dependency tooling
         run: |
@@ -51,12 +34,10 @@ jobs:
           .venv/bin/python -m pip install pip-tools
 
       - name: Install project dependencies
-        run: |
-          .venv/bin/pip-sync requirements.txt
+        run: .venv/bin/pip-sync requirements.txt
 
       - name: Generate docs
-        run: |
-          bash scripts/generate_docs/generate_docs.sh
+        run: bash scripts/generate_docs/generate_docs.sh
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

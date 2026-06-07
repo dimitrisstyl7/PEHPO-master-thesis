@@ -1,0 +1,37 @@
+name: lint
+
+on:
+  workflow_call:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Create virtual environment
+        run: python -m venv .venv
+
+      - name: Install dependency tooling
+        run: |
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/python -m pip install pip-tools
+
+      - name: Install project dependencies
+        run: .venv/bin/pip-sync requirements.txt
+
+      - name: Ruff lint
+        run: .venv/bin/ruff check src/
+
+      - name: Ruff format check
+        run: .venv/bin/ruff format --check src/
+
+      - name: Mypy type check
+        run: .venv/bin/mypy src/
