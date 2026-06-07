@@ -3,8 +3,10 @@
 
 class ModelParams:
     """
-    A class to hold the hyperparameters for the TabNet model.
-    It automatically calculates the 'virtual_batch_size' based on the provided 'batch_size'.
+    Hyperparameter container for a TabNet model configuration.
+
+    `virtual_batch_size` is derived automatically from `batch_size` to satisfy
+    Ghost Batch Normalization constraints (≥128 → 128, else `batch_size // 2`).
     """
 
     def __init__(
