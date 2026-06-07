@@ -95,4 +95,4 @@ class TabNetEvaluator:
 
         # Calculate and return Macro F1-Score - We use Macro because it averages the F1 of each class independently.
         # zero_division=0 prevents warnings when a model fails to predict rare classes.
-        return f1_score(self.y_test, y_pred, average="macro", zero_division=0)
+        return float(f1_score(self.y_test, y_pred, average="macro", zero_division=0))

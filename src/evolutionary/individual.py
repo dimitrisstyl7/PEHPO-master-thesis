@@ -58,9 +58,9 @@ class Individual:
         """
         new_genes: dict[str, int | float] = {}
         for key, bounds in self.search_space.items():
-            if bounds["type"] == int:
+            if bounds["type"] is int:
                 new_genes[key] = random.randint(int(bounds["min"]), int(bounds["max"]))
-            elif bounds["type"] == float:
+            elif bounds["type"] is float:
                 new_genes[key] = random.uniform(bounds["min"], bounds["max"])
         return new_genes
 
@@ -94,11 +94,15 @@ class Individual:
             delta = abs(B - value) / self.sub_areas_number  # Sub-area width (δ)
             i = random.randint(1, self.sub_areas_number)  # Sub-area index
 
-            a, b = (value, value + delta * i) if should_increase else (value - delta * i, value) # fmt: skip
+            a, b = (
+                (value, value + delta * i)
+                if should_increase
+                else (value - delta * i, value)
+            )
             new_value = entry["type"](random.uniform(a, b))
 
             # If it's an int and didn't change due to rounding, nudge it by 1
-            if new_value == value and entry["type"] == int:
+            if new_value == value and entry["type"] is int:
                 step = 1 if should_increase else -1
                 # Ensure the nudge doesn't exceed the bounds
                 if entry["min"] <= value + step <= entry["max"]:

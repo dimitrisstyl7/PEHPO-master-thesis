@@ -18,7 +18,7 @@ class SelfAdaptiveSBX:
     index after children are evaluated.
     """
 
-    def __init__(self):
+    def __init__(self):  # type: ignore[no-untyped-def]
         """
         Initialize SBX parameters and memory.
 
@@ -147,7 +147,7 @@ class SelfAdaptiveSBX:
         """
         exponent = 1 / (self._eta_c + 1)
         base = (2 * u) if u <= 0.5 else (1 / (2 * (1 - u)))
-        return base**exponent
+        return math.pow(base, exponent)
 
     @staticmethod
     def _calculate_genes(
