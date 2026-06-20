@@ -9,9 +9,9 @@ from evolutionary.self_adaptive_SBX import SelfAdaptiveSBX
 
 class GeneticAlgorithm:
     """
-    Orchestrates a generational genetic algorithm with SBX crossover and elitism.
+    Orchestrates a generational genetic algorithm with Self-Adaptive SBX crossover and elitism.
 
-    Wires together population initialization, tournament selection, self-adaptive
+    Wires together population initialization, tournament selection, Self-Adaptive
     SBX crossover, GLEAM mutation, and elitism into a full generational loop.
     The objective function is injected at construction time, keeping the GA
     independent of any specific evaluation domain.
@@ -30,7 +30,7 @@ class GeneticAlgorithm:
         verbose: bool = True,
     ):
         """
-        Configure the GA and instantiate the SBX crossover operator.
+        Configure the GA and instantiate the Self-Adaptive SBX crossover operator.
 
         Args:
             objective_fn: Maps a gene dict to a scalar fitness score.
@@ -42,7 +42,7 @@ class GeneticAlgorithm:
             mutation_rate: Per-gene mutation probability applied to each child.
             sub_areas_number: GLEAM partition count for bounded perturbation range.
             elites_count: Top individuals carried over untouched each generation.
-            verbose: If `True`, prints the best fitness and η_c after each generation.
+            verbose: If `True`, prints the best fitness and $\eta_c$ after each generation.
         """
         self._objective_fn = objective_fn
         self._search_space = search_space
@@ -84,7 +84,7 @@ class GeneticAlgorithm:
 
     def _tournament_selection(self, population: list[Individual]) -> Individual:
         """
-        Select one parent via k-tournament selection.
+        Select one parent via $k$-tournament selection.
 
         Draws `tournament_size` candidates without replacement and returns the
         one with the highest fitness. Stochastic; uses `random.sample`.
@@ -125,7 +125,7 @@ class GeneticAlgorithm:
         1. Extract elites (carried over untouched, fitness retained).
         2. Fill the remainder: tournament select → Self-Adaptive SBX crossover → mutate.
         3. Evaluate only the new children.
-        4. Update η_c for each parent–child pair via `SelfAdaptiveSBX.update_etas()`.
+        4. Update $\eta_c$ for each parent–child pair via `SelfAdaptiveSBX.update_etas()`.
         5. Clear the pair buffer.
         6. Replace population with elites + trimmed children.
         7. Track the global best individual across all generations.

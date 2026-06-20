@@ -6,7 +6,7 @@ class ModelParams:
     Hyperparameter container for a TabNet model configuration.
 
     `virtual_batch_size` is derived automatically from `batch_size` to satisfy
-    Ghost Batch Normalization constraints (≥128 → 128, else `batch_size // 2`).
+    Ghost Batch Normalization constraints ($\ge 128 \to 128$, else `batch_size // 2`).
     """
 
     def __init__(
@@ -22,9 +22,9 @@ class ModelParams:
         Initializes the ModelParams with the given parameters for the TabNet model.
 
         Args:
-            n_da: Width of the decision prediction layer (`n_d`) and attention embedding (`n_a`).
+            n_da: Width of the decision prediction layer ($n_d$) and attention embedding ($n_a$).
                 Bigger values give more capacity with higher overfitting risk. Typical range is 8 to 64.
-                According to the paper, `n_d = n_a` is usually a good choice.
+                According to the paper, $n_d = n_a$ is usually a good choice.
             n_steps: Number of steps in the TabNet architecture (usually between 3 and 10).
             gamma: Coefficient for feature reusage in masks. Values close to 1 make mask selection less
                 correlated between layers. Valid range is 1.0 to 2.0.

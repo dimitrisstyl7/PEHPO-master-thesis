@@ -1,4 +1,4 @@
-"""Self-adaptive simulated binary crossover (SBX).
+"""Self-Adaptive Simulated Binary Crossover (Self-Adaptive SBX).
 
 Stateful crossover operator that adapts its distribution index based on offspring
 performance.
@@ -12,7 +12,7 @@ from evolutionary.individual import Individual
 
 class SelfAdaptiveSBX:
     """
-    Stateful SBX crossover operator with adaptive distribution index.
+    Stateful Self-Adaptive SBX crossover operator with adaptive distribution index.
 
     Stores per-child spread factors during crossover and updates the distribution
     index after children are evaluated.
@@ -20,7 +20,7 @@ class SelfAdaptiveSBX:
 
     def __init__(self):  # type: ignore[no-untyped-def]
         """
-        Initialize SBX parameters and memory.
+        Initialize Self-Adaptive SBX parameters and memory.
 
         Sets the distribution index, adaptation factor, bounds, and prepares
         memory for per-child spread factors.
@@ -32,7 +32,7 @@ class SelfAdaptiveSBX:
 
     @property
     def eta_c(self) -> float:
-        """Current distribution index η_c controlling offspring spread."""
+        """Current distribution index $\eta_c$ controlling offspring spread."""
         return self._eta_c
 
     def crossover(
@@ -161,10 +161,11 @@ class SelfAdaptiveSBX:
 
     def _calculate_spread_factor(self, u: float) -> float:
         """
-        Compute the SBX spread factor β_q from a uniform sample `u` and `η_c`.
+        Compute the SBX spread factor $\beta_q$ from a uniform sample $u$ and $\eta_c$.
 
-        **Formula:** β_q = (2u)^(1/(η_c+1)) for u ≤ 0.5, else (1/(2(1−u)))^(1/(η_c+1)).
-        Higher `η_c` concentrates offspring closer to parents (smaller β_q).
+        **Formula:**
+        $$\beta_q = \begin{cases} (2u)^{\frac{1}{\eta_c + 1}} & \text{for } u \le 0.5 \\ \left(\frac{1}{2(1 - u)}\right)^{\frac{1}{\eta_c + 1}} & \text{for } u > 0.5 \end{cases}$$
+        Higher $\eta_c$ concentrates offspring closer to parents (smaller $\beta_q$).
         """
         exponent = 1 / (self._eta_c + 1)
         base = (2 * u) if u <= 0.5 else (1 / (2 * (1 - u)))
@@ -179,8 +180,13 @@ class SelfAdaptiveSBX:
         """
         Compute offspring gene values using the SBX midpoint–step decomposition.
 
-        **Formula:** midpoint = (p1 + p2)/2, step = β_q·(p1 − p2)/2.
-        Child 1 = midpoint + step, child 2 = midpoint − step.
+        **Formula:**
+        $$\begin{align*}
+        \text{midpoint} &= \frac{p_1 + p_2}{2} \\
+        \text{step} &= \beta_q \cdot \frac{p_1 - p_2}{2} \\
+        \text{child}_1 &= \text{midpoint} + \text{step} \\
+        \text{child}_2 &= \text{midpoint} - \text{step}
+        \end{align*}$$
         """
         midpoint = 0.5 * (child_1_gene + child_2_gene)
         step = 0.5 * beta_q * (child_1_gene - child_2_gene)
