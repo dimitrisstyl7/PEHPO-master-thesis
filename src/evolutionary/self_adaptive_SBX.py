@@ -22,15 +22,12 @@ class SelfAdaptiveSBX:
 
     Stores per-child spread factors during crossover and updates the distribution
     index after children are evaluated.
+
+    Initializes the distribution index, adaptation factor, bounds, and prepares
+    memory for per-child spread factors.
     """
 
     def __init__(self):  # type: ignore[no-untyped-def]
-        """
-        Initialize Self-Adaptive SBX parameters and memory.
-
-        Sets the distribution index, adaptation factor, bounds, and prepares
-        memory for per-child spread factors.
-        """
         self._eta_c = 2.0
         self._alpha = 2.0
         self._eta_c_bounds = {"min": 0.0, "max": 50.0}

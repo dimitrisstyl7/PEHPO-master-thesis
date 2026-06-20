@@ -24,19 +24,13 @@ class TabNetEvaluator:
     then exposes `evaluate()` to train and score a model for a given hyperparameter set.
 
     The dataset must contain a `Label` column used as the classification target.
+
+    Args:
+        dataset_path: Path to the dataset CSV file.
+            Default is `"datasets/cicids2017_cleaned.csv"`.
     """
 
     def __init__(self, dataset_path: str = "datasets/cicids2017_cleaned.csv"):
-        """
-        Initializes the TabNetEvaluator with the given dataset path. It loads the dataset, splits it
-        into training/validation/testing sets, and prepares the data for evaluation.
-
-        The input CSV file must have a 'Label' column.
-
-        Args:
-            dataset_path: Path to the dataset CSV file.
-                Default is `"datasets/cicids2017_cleaned.csv"`.
-        """
         df = typing.cast(DataFrame, load_csv(dataset_path))
         X = df.drop(columns=["Label"]).to_numpy()
         y = df["Label"].to_numpy()

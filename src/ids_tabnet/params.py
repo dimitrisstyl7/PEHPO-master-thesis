@@ -11,6 +11,20 @@ class ModelParams:
 
     `virtual_batch_size` is derived automatically from `batch_size` to satisfy
     Ghost Batch Normalization constraints ($\ge 128 \to 128$, else `batch_size // 2`).
+
+    Args:
+        n_da: Width of the decision prediction layer ($n_d$) and attention embedding ($n_a$).
+            Bigger values give more capacity with higher overfitting risk. Typical range is 8 to 64.
+            According to the paper, $n_d = n_a$ is usually a good choice.
+        n_steps: Number of steps in the TabNet architecture (usually between 3 and 10).
+        gamma: Coefficient for feature reusage in masks. Values close to 1 make mask selection less
+            correlated between layers. Valid range is 1.0 to 2.0.
+        lambda_sparse: Extra sparsity loss coefficient. Higher values enforce sparser feature selection.
+        lr: Initial optimizer learning rate. A large initial value with decay is recommended in the paper.
+        batch_size: Number of samples per training batch.
+
+    Raises:
+        ValueError: If `gamma` is not between 1.0 and 2.0.
     """
 
     def __init__(
@@ -22,23 +36,6 @@ class ModelParams:
         lr: float,
         batch_size: int,
     ):
-        """
-        Initializes the ModelParams with the given parameters for the TabNet model.
-
-        Args:
-            n_da: Width of the decision prediction layer ($n_d$) and attention embedding ($n_a$).
-                Bigger values give more capacity with higher overfitting risk. Typical range is 8 to 64.
-                According to the paper, $n_d = n_a$ is usually a good choice.
-            n_steps: Number of steps in the TabNet architecture (usually between 3 and 10).
-            gamma: Coefficient for feature reusage in masks. Values close to 1 make mask selection less
-                correlated between layers. Valid range is 1.0 to 2.0.
-            lambda_sparse: Extra sparsity loss coefficient. Higher values enforce sparser feature selection.
-            lr: Initial optimizer learning rate. A large initial value with decay is recommended in the paper.
-            batch_size: Number of samples per training batch.
-
-        Raises:
-            ValueError: If `gamma` is not between 1.0 and 2.0.
-        """
         if gamma < 1.0 or gamma > 2.0:
             raise ValueError("Gamma should be between 1.0 and 2.0.")
 

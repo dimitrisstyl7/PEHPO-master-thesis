@@ -6,18 +6,14 @@ from typing import TypedDict
 
 
 class SearchSpaceEntry(TypedDict):
-    """
-    Constraints and type definition for a single gene in the search space.
-
-    Attributes:
-        min: The inclusive minimum value allowed for the gene.
-        max: The inclusive maximum value allowed for the gene.
-        type: The Python type (typically `int` or `float`) used to cast the gene.
-    """
+    """Constraints and type definition for a single gene in the search space."""
 
     min: int | float
+    """The inclusive minimum value allowed for the gene."""
     max: int | float
+    """The inclusive maximum value allowed for the gene."""
     type: type
+    """The Python type (typically `int` or `float`) used to cast the gene."""
 
 
 __pdoc__ = {
@@ -32,6 +28,15 @@ class Individual:
 
     Each individual holds a dictionary of genes constrained by a provided search space,
     stores its fitness score, and carries a unique id.
+
+    Args:
+        search_space: Dictionary describing valid range and type for each gene.
+        mutation_rate: Per-gene mutation probability for this individual.
+        sub_areas_number: Number of sub-areas used for mutation range partitioning.
+        genes: Optional gene dictionary. If `None`, random genes are generated.
+
+    Raises:
+        ValueError: If `search_space` is `None`.
     """
 
     def __init__(
@@ -41,19 +46,6 @@ class Individual:
         sub_areas_number: int,
         genes: dict[str, int | float] | None = None,
     ):
-        """
-        Initializes an Individual with either provided genes or randomly generated ones.
-        Assigns a unique id via random uuid4 for traceability.
-
-        Args:
-            search_space: Dictionary describing valid range and type for each gene.
-            mutation_rate: Per-gene mutation probability for this individual.
-            sub_areas_number: Number of sub-areas used for mutation range partitioning.
-            genes: Optional gene dictionary. If `None`, random genes are generated.
-
-        Raises:
-            ValueError: If `search_space` is `None`.
-        """
         if search_space is None:
             raise ValueError("Please provide a search space.")
 

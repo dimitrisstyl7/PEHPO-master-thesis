@@ -17,13 +17,25 @@ __pdoc__ = {
 
 
 class GeneticAlgorithm:
-    """
+    r"""
     Orchestrates a generational genetic algorithm with Self-Adaptive SBX crossover and elitism.
 
     Wires together population initialization, tournament selection, Self-Adaptive
     SBX crossover, GLEAM mutation, and elitism into a full generational loop.
     The objective function is injected at construction time, keeping the GA
     independent of any specific evaluation domain.
+
+    Args:
+        objective_fn: Maps a gene dict to a scalar fitness score.
+            Called once per individual per generation; higher is better.
+        search_space: Bounds and type constraints for each hyperparameter gene.
+        population_size: Number of individuals maintained across generations.
+        max_generations: Total number of generational cycles to execute.
+        tournament_size: Number of candidates drawn per tournament selection event.
+        mutation_rate: Per-gene mutation probability applied to each child.
+        sub_areas_number: GLEAM partition count for bounded perturbation range.
+        elites_count: Top individuals carried over untouched each generation.
+        verbose: If `True`, prints the best fitness and $\eta_c$ after each generation.
     """
 
     def __init__(
@@ -38,21 +50,6 @@ class GeneticAlgorithm:
         elites_count: int = 1,
         verbose: bool = True,
     ):
-        r"""
-        Configure the GA and instantiate the Self-Adaptive SBX crossover operator.
-
-        Args:
-            objective_fn: Maps a gene dict to a scalar fitness score.
-                Called once per individual per generation; higher is better.
-            search_space: Bounds and type constraints for each hyperparameter gene.
-            population_size: Number of individuals maintained across generations.
-            max_generations: Total number of generational cycles to execute.
-            tournament_size: Number of candidates drawn per tournament selection event.
-            mutation_rate: Per-gene mutation probability applied to each child.
-            sub_areas_number: GLEAM partition count for bounded perturbation range.
-            elites_count: Top individuals carried over untouched each generation.
-            verbose: If `True`, prints the best fitness and $\eta_c$ after each generation.
-        """
         self._objective_fn = objective_fn
         self._search_space = search_space
         self._population_size = population_size
