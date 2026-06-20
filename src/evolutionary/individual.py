@@ -71,9 +71,9 @@ class Individual:
         Per-gene mutation probability gates entry. For each selected gene:
 
         - Direction is forced toward the nearer bound if at boundary, otherwise random.
-        - Distance to boundary is partitioned into `sub_areas_number` sub-areas (width δ).
-        - A random sub-area index *i* is drawn; new value sampled from `[a, a + δ·i]`.
-        - Integer genes that round to the same value are nudged by ±1 if within bounds.
+        - Distance to boundary is partitioned into `sub_areas_number` sub-areas (width $\delta$).
+        - A random sub-area index $i$ is drawn; new value sampled from $[a, a + \delta \cdot i]$.
+        - Integer genes that round to the same value are nudged by $\pm 1$ if within bounds.
         """
         for key, value in self.genes.items():
             if random.random() > self.mutation_rate:
