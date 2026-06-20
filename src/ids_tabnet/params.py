@@ -2,7 +2,7 @@
 
 
 class ModelParams:
-    """
+    r"""
     Hyperparameter container for a TabNet model configuration.
 
     `virtual_batch_size` is derived automatically from `batch_size` to satisfy

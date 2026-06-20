@@ -32,7 +32,7 @@ class SelfAdaptiveSBX:
 
     @property
     def eta_c(self) -> float:
-        """Current distribution index $\eta_c$ controlling offspring spread."""
+        r"""Current distribution index $\eta_c$ controlling offspring spread."""
         return self._eta_c
 
     def crossover(
@@ -160,7 +160,7 @@ class SelfAdaptiveSBX:
         self._memory.pop(child_2.id, None)
 
     def _calculate_spread_factor(self, u: float) -> float:
-        """
+        r"""
         Compute the SBX spread factor $\beta_q$ from a uniform sample $u$ and $\eta_c$.
 
         **Formula:**
@@ -177,7 +177,7 @@ class SelfAdaptiveSBX:
         child_1_gene: int | float,
         child_2_gene: int | float,
     ) -> tuple[int | float, int | float]:
-        """
+        r"""
         Compute offspring gene values using the SBX midpoint–step decomposition.
 
         **Formula:**
