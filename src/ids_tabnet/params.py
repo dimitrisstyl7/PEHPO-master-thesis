@@ -1,5 +1,9 @@
 """Parameter container for TabNet model configuration."""
 
+__pdoc__ = {
+    "ModelParams.__init__": False,
+}
+
 
 class ModelParams:
     r"""

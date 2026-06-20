@@ -208,3 +208,6 @@ __marimo__/
 
 # Datasets CSV files
 datasets/**/*.csv
+
+# Docs
+docs

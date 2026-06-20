@@ -7,6 +7,15 @@ from evolutionary.individual import Individual, SearchSpaceEntry
 from evolutionary.self_adaptive_SBX import SelfAdaptiveSBX
 
 
+__pdoc__ = {
+    "GeneticAlgorithm.__init__": False,
+    "GeneticAlgorithm._initialize_population": True,
+    "GeneticAlgorithm._evaluate_population": True,
+    "GeneticAlgorithm._tournament_selection": True,
+    "GeneticAlgorithm._get_elites": True,
+}
+
+
 class GeneticAlgorithm:
     """
     Orchestrates a generational genetic algorithm with Self-Adaptive SBX crossover and elitism.

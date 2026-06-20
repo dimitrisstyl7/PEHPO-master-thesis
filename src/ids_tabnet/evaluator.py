@@ -11,6 +11,11 @@ from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 
 
+__pdoc__ = {
+    "TabNetEvaluator.__init__": False,
+}
+
+
 class TabNetEvaluator:
     """
     Evaluates a TabNet classifier on a fixed train/val/test split.

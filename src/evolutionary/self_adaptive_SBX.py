@@ -9,6 +9,12 @@ import random
 
 from evolutionary.individual import Individual
 
+__pdoc__ = {
+    "SelfAdaptiveSBX.__init__": False,
+    "SelfAdaptiveSBX._calculate_spread_factor": True,
+    "SelfAdaptiveSBX._calculate_genes": True,
+}
+
 
 class SelfAdaptiveSBX:
     """
@@ -44,9 +50,10 @@ class SelfAdaptiveSBX:
         Perform SBX crossover and record per-gene spread factors.
 
         **Steps:**
-        - Sample a uniform value per gene and compute a spread factor.
-        - Generate offspring genes, then enforce type and bounds.
-        - Record per-child spread factors for later adaptation.
+
+        1. Sample a uniform value per gene and compute a spread factor.
+        2. Generate offspring genes, then enforce type and bounds.
+        3. Record per-child spread factors for later adaptation.
 
         This method is stochastic and uses the `random` module.
         """
