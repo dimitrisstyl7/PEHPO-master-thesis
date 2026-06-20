@@ -29,7 +29,7 @@ class GeneticAlgorithm:
         elites_count: int = 1,
         verbose: bool = True,
     ):
-        """
+        r"""
         Configure the GA and instantiate the Self-Adaptive SBX crossover operator.
 
         Args:
@@ -117,7 +117,7 @@ class GeneticAlgorithm:
         ]
 
     def run(self) -> Individual:
-        """
+        r"""
         Execute the full generational evolutionary loop.
 
         **Algorithm per generation:**

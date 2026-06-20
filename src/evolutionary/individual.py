@@ -65,7 +65,7 @@ class Individual:
         return new_genes
 
     def mutate(self) -> None:
-        """
+        r"""
         Mutates genes using a GLEAM-inspired bounded perturbation strategy.
 
         Per-gene mutation probability gates entry. For each selected gene:

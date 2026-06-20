@@ -33,6 +33,6 @@ src_path = os.path.join(repo_root, "src")
 if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
-sys.argv = ["pdoc", "--html", "--output-dir", "docs", "--force", "src", *sys.argv[1:]]
+sys.argv = ["pdoc", "--html", "--output-dir", "docs", "--force", "--config", "latex_math=True", "src", *sys.argv[1:]]
 runpy.run_module("pdoc", run_name="__main__")
 PY
