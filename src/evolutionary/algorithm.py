@@ -6,7 +6,6 @@ from collections.abc import Callable
 from evolutionary.individual import Individual, SearchSpaceEntry
 from evolutionary.self_adaptive_SBX import SelfAdaptiveSBX
 
-
 __pdoc__ = {
     "GeneticAlgorithm.__init__": False,
     "GeneticAlgorithm._initialize_population": True,
@@ -118,6 +117,7 @@ class GeneticAlgorithm:
                 mutation_rate=elite.mutation_rate,
                 sub_areas_number=elite.sub_areas_number,
                 genes=elite.genes.copy(),
+                fitness=elite.fitness,
             )
             for elite in sorted_pop[: self._elites_count]
         ]
@@ -166,6 +166,8 @@ class GeneticAlgorithm:
 
             # Trim to exact target in case (population_size - elites_count) is odd
             children = children[:target_children]
+            # Keep only complete parent-child pairs that still have both evaluated children
+            pairs = pairs[: len(children) // 2]
             # Only evaluate new children — elites already carry valid fitness scores
             self._evaluate_population(children)
 

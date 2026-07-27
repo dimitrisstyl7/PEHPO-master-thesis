@@ -45,6 +45,7 @@ class Individual:
         mutation_rate: float,
         sub_areas_number: int,
         genes: dict[str, int | float] | None = None,
+        fitness: float = 0.0,
     ):
         if search_space is None:
             raise ValueError("Please provide a search space.")
@@ -53,7 +54,7 @@ class Individual:
         self.genes = self._generate_random_genes() if genes is None else genes
         self.mutation_rate = mutation_rate
         self.sub_areas_number = sub_areas_number
-        self.fitness = 0.0
+        self.fitness = fitness
         self.id = uuid.uuid4().hex
 
     def _generate_random_genes(self) -> dict[str, int | float]:
