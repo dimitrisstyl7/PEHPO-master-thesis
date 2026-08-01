@@ -40,6 +40,19 @@ python -m pip install pip-tools
 
 Make sure the `.venv` virtual environment is active before installing/syncing dependencies.
 
+### Local development workflow (lock + sync)
+
 ```bash
 pip-compile requirements.in && pip-sync requirements.txt
 ```
+
+### CI workflow (install from lockfile)
+
+GitHub Actions installs dependencies directly from the pinned lockfile:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+This avoids runtime compatibility issues between pip and pip-tools while keeping reproducible versions from
+`requirements.txt`.
