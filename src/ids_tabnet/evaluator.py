@@ -1,6 +1,7 @@
 """Model evaluation utilities for TabNet-based IDS experiments."""
 
 import typing
+from typing import Any
 
 import torch
 from helpers.file_loader import load_csv
@@ -9,7 +10,6 @@ from pandas.core.frame import DataFrame
 from pytorch_tabnet.tab_model import TabNetClassifier
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
-
 
 __pdoc__ = {
     "TabNetEvaluator.__init__": False,
@@ -56,13 +56,41 @@ class TabNetEvaluator:
 
     def evaluate(self, params: ModelParams) -> float:
         """
+        Trains a TabNetClassifier with the given model parameters and evaluates it on the validation set.
+
+        Args:
+            params: Hyperparameters for this TabNet evaluation run.
+
+        Returns:
+            Macro F1-score of the model on the validation set.
+        """
+        return self._fit_and_score(params, self.X_val, self.y_val)
+
+    def evaluate_test(self, params: ModelParams) -> float:
+        """
         Trains a TabNetClassifier with the given model parameters and evaluates it on the test set.
+
+        Use this only after model selection is finished, not during GA fitness evaluation.
 
         Args:
             params: Hyperparameters for this TabNet evaluation run.
 
         Returns:
             Macro F1-score of the model on the test set.
+        """
+        return self._fit_and_score(params, self.X_test, self.y_test)
+
+    def _fit_and_score(
+        self,
+        params: ModelParams,
+        X_score: Any,
+        y_score: Any,
+    ) -> float:
+        """
+        Fit TabNet once and score on the provided split.
+
+        The training and early-stopping split stays fixed internally so GA and
+        final reporting share identical model setup.
         """
         clf = TabNetClassifier(
             n_d=int(params.n_da),
@@ -90,9 +118,8 @@ class TabNetEvaluator:
             virtual_batch_size=int(params.virtual_batch_size),
         )
 
-        # Predict on the test set
-        y_pred = clf.predict(self.X_test)
+        y_pred = clf.predict(X_score)
 
         # Calculate and return Macro F1-Score - We use Macro because it averages the F1 of each class independently.
         # zero_division=0 prevents warnings when a model fails to predict rare classes.
-        return float(f1_score(self.y_test, y_pred, average="macro", zero_division=0))
+        return float(f1_score(y_score, y_pred, average="macro", zero_division=0))

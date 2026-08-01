@@ -1,11 +1,5 @@
 """Configuration constants for evolutionary hyperparameter optimization."""
 
-MUTATION_RATE = 0.1
-"""Probability that each gene mutates during one mutation step."""
-
-SUB_AREAS_NUMBER = 10
-"""Number of mutation sub-areas used by the GLEAM-inspired mutation rule."""
-
 IDS_TABNET_SEARCH_SPACE = {
     "n_da": {"min": 8, "max": 64, "type": int},
     "n_steps": {"min": 3, "max": 10, "type": int},

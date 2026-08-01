@@ -28,13 +28,11 @@ jobs:
       - name: Create virtual environment
         run: python -m venv .venv
 
-      - name: Install dependency tooling
-        run: |
-          .venv/bin/python -m pip install --upgrade pip
-          .venv/bin/python -m pip install pip-tools
+      - name: Upgrade pip
+        run: .venv/bin/python -m pip install --upgrade pip
 
       - name: Install project dependencies
-        run: .venv/bin/pip-sync requirements.txt
+        run: .venv/bin/python -m pip install -r requirements.txt
 
       - name: Generate docs
         run: bash scripts/generate_docs/generate_docs.sh
