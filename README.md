@@ -28,31 +28,42 @@ cd PEHPO-master-thesis
         python -m venv .venv && .venv\Scripts\Activate.ps1
         ```
 
-## Install dependency tooling ([pip-tools](https://pypi.org/project/pip-tools/))
+## Install dependencies
 
-Make sure the `.venv` virtual environment is active before running this command.
+Make sure the `.venv` virtual environment is active before installing dependencies.
 
-```bash
-python -m pip install pip-tools
-```
+### Running the project (recommended)
 
-## Dependencies installation
-
-Make sure the `.venv` virtual environment is active before installing/syncing dependencies.
-
-### Local development workflow (lock + sync)
-
-```bash
-pip-compile requirements.in && pip-sync requirements.txt
-```
-
-### CI workflow (install from lockfile)
-
-GitHub Actions installs dependencies directly from the pinned lockfile:
+Install the already-pinned dependencies from `requirements.txt`:
 
 ```bash
 python -m pip install -r requirements.txt
 ```
 
-This avoids runtime compatibility issues between pip and pip-tools while keeping reproducible versions from
+This is the standard setup path for users who want to run the project. It does not modify
 `requirements.txt`.
+
+### Updating dependencies
+
+Only run these commands when intentionally changing the project's dependencies. First update
+`requirements.in`, then install [pip-tools](https://pypi.org/project/pip-tools/) and regenerate
+the pinned lockfile:
+
+```bash
+python -m pip install pip-tools
+pip-compile requirements.in
+pip-sync requirements.txt
+```
+
+`pip-compile` resolves and writes pinned versions to `requirements.txt`; `pip-sync` makes the
+active virtual environment match that file exactly, including removing packages not listed in it.
+
+### CI workflow
+
+GitHub Actions also installs directly from the committed lockfile:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+This keeps the dependency versions reproducible without regenerating `requirements.txt`.
