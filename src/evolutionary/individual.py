@@ -40,12 +40,12 @@ class Individual:
     """
 
     def __init__(
-        self,
-        search_space: dict[str, SearchSpaceEntry],
-        mutation_rate: float,
-        sub_areas_number: int,
-        genes: dict[str, int | float] | None = None,
-        fitness: float = 0.0,
+            self,
+            search_space: dict[str, SearchSpaceEntry],
+            mutation_rate: float,
+            sub_areas_number: int,
+            genes: dict[str, int | float] | None = None,
+            fitness: float = 0.0,
     ):
         if search_space is None:
             raise ValueError("Please provide a search space.")

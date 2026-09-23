@@ -39,9 +39,9 @@ class SelfAdaptiveSBX:
         return self._eta_c
 
     def crossover(
-        self,
-        parent_1: Individual,
-        parent_2: Individual,
+            self,
+            parent_1: Individual,
+            parent_2: Individual,
     ) -> tuple[Individual, Individual]:
         """
         Perform SBX crossover and record per-gene spread factors.
@@ -107,11 +107,11 @@ class SelfAdaptiveSBX:
         return child_1, child_2
 
     def update_etas(
-        self,
-        parent_1: Individual,
-        parent_2: Individual,
-        child_1: Individual,
-        child_2: Individual,
+            self,
+            parent_1: Individual,
+            parent_2: Individual,
+            child_1: Individual,
+            child_2: Individual,
     ) -> None:
         """
         Update the distribution index using the winning child and stored spread
@@ -177,9 +177,9 @@ class SelfAdaptiveSBX:
 
     @staticmethod
     def _calculate_genes(
-        beta_q: float,
-        child_1_gene: int | float,
-        child_2_gene: int | float,
+            beta_q: float,
+            child_1_gene: int | float,
+            child_2_gene: int | float,
     ) -> tuple[int | float, int | float]:
         r"""
         Compute offspring gene values using the SBX midpoint–step decomposition.

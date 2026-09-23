@@ -4,12 +4,13 @@ import typing
 from typing import Any
 
 import torch
-from helpers.file_loader import load_csv
-from ids_tabnet.params import ModelParams
 from pandas.core.frame import DataFrame
 from pytorch_tabnet.tab_model import TabNetClassifier
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
+
+from helpers.file_loader import load_csv
+from ids_tabnet.params import ModelParams
 
 __pdoc__ = {
     "TabNetEvaluator.__init__": False,
@@ -81,10 +82,10 @@ class TabNetEvaluator:
         return self._fit_and_score(params, self.X_test, self.y_test)
 
     def _fit_and_score(
-        self,
-        params: ModelParams,
-        X_score: Any,
-        y_score: Any,
+            self,
+            params: ModelParams,
+            X_score: Any,
+            y_score: Any,
     ) -> float:
         """
         Fit TabNet once and score on the provided split.

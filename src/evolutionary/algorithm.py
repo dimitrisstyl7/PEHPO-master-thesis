@@ -38,16 +38,16 @@ class GeneticAlgorithm:
     """
 
     def __init__(
-        self,
-        objective_fn: Callable[[dict[str, int | float]], float],
-        search_space: dict[str, SearchSpaceEntry],
-        population_size: int,
-        max_generations: int,
-        tournament_size: int,
-        mutation_rate: float,
-        sub_areas_number: int,
-        elites_count: int = 1,
-        verbose: bool = True,
+            self,
+            objective_fn: Callable[[dict[str, int | float]], float],
+            search_space: dict[str, SearchSpaceEntry],
+            population_size: int,
+            max_generations: int,
+            tournament_size: int,
+            mutation_rate: float,
+            sub_areas_number: int,
+            elites_count: int = 1,
+            verbose: bool = True,
     ):
         self._objective_fn = objective_fn
         self._search_space = search_space
@@ -142,7 +142,8 @@ class GeneticAlgorithm:
         population = self._initialize_population()
         self._evaluate_population(population)
         best = max(
-            population, key=lambda ind: ind.fitness
+            population,
+            key=lambda ind: ind.fitness,
         )  # Global best across all generations
 
         for generation in range(self._max_generations):
@@ -161,7 +162,7 @@ class GeneticAlgorithm:
                 child_2.mutate()
                 children.extend([child_1, child_2])
                 pairs.append(
-                    (parent_1, parent_2, child_1, child_2)
+                    (parent_1, parent_2, child_1, child_2),
                 )  # Store for η_c update
 
             # Trim to exact target in case (population_size - elites_count) is odd
@@ -185,7 +186,7 @@ class GeneticAlgorithm:
                 print(
                     f"Generation {generation + 1}/{self._max_generations} | "
                     f"Best fitness: {best.fitness:.4f} | "
-                    f"\u03b7_c: {self._crossover.eta_c:.4f}"
+                    f"\u03b7_c: {self._crossover.eta_c:.4f}",
                 )
 
         return best

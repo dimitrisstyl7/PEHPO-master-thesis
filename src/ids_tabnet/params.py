@@ -28,13 +28,13 @@ class ModelParams:
     """
 
     def __init__(
-        self,
-        n_da: int,
-        n_steps: int,
-        gamma: float,
-        lambda_sparse: float,
-        lr: float,
-        batch_size: int,
+            self,
+            n_da: int,
+            n_steps: int,
+            gamma: float,
+            lambda_sparse: float,
+            lr: float,
+            batch_size: int,
     ):
         if gamma < 1.0 or gamma > 2.0:
             raise ValueError("Gamma should be between 1.0 and 2.0.")

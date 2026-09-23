@@ -40,8 +40,8 @@ algorithms (Evolutionary Algorithms, Neural Networks) with exceptionally clean, 
 - **No Global State:** Pass dependencies explicitly. No global variables for algorithmic state
 - **Single Responsibility:** Fns do one thing. If algorithm needs forward pass + backward update loop → separate into
   distinct methods
-- **Memory Management:** Be explicitly mindful of temporary state. Variables only needed for a single generational gap (
-  e.g., crossover spread factors) → aggressively cleared to prevent memory leaks over thousands of iterations
+- **Memory Management:** Be explicitly mindful of temporary state. Variables only needed for a single generational gap
+  (e.g., crossover spread factors) → aggressively cleared to prevent memory leaks over thousands of iterations
 
 ---
 
