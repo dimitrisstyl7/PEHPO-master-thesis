@@ -82,10 +82,10 @@ class TabNetEvaluator:
         return self._fit_and_score(params, self.X_test, self.y_test)
 
     def _fit_and_score(
-            self,
-            params: ModelParams,
-            X_score: Any,
-            y_score: Any,
+        self,
+        params: ModelParams,
+        X_score: Any,
+        y_score: Any,
     ) -> float:
         """
         Fit TabNet once and score on the provided split.

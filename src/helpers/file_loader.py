@@ -25,5 +25,5 @@ def load_csv(file_path: str) -> TextFileReader | DataFrame:
         raise FileNotFoundError(f"File not found: {file_path}")
     try:
         return pd.read_csv(file_path)
-    except Exception as e:
-        raise IOError(f"Error reading CSV file: {e}")
+    except (OSError, pd.errors.ParserError, UnicodeDecodeError, ValueError) as e:
+        raise OSError(f"Error reading CSV file: {e}") from e

@@ -4,7 +4,7 @@ import random
 from collections.abc import Callable
 
 from evolutionary.individual import Individual, SearchSpaceEntry
-from evolutionary.self_adaptive_SBX import SelfAdaptiveSBX
+from evolutionary.self_adaptive_sbx import SelfAdaptiveSBX
 
 __pdoc__ = {
     "GeneticAlgorithm.__init__": False,
@@ -38,16 +38,16 @@ class GeneticAlgorithm:
     """
 
     def __init__(
-            self,
-            objective_fn: Callable[[dict[str, int | float]], float],
-            search_space: dict[str, SearchSpaceEntry],
-            population_size: int,
-            max_generations: int,
-            tournament_size: int,
-            mutation_rate: float,
-            sub_areas_number: int,
-            elites_count: int = 1,
-            verbose: bool = True,
+        self,
+        objective_fn: Callable[[dict[str, int | float]], float],
+        search_space: dict[str, SearchSpaceEntry],
+        population_size: int,
+        max_generations: int,
+        tournament_size: int,
+        mutation_rate: float,
+        sub_areas_number: int,
+        elites_count: int = 1,
+        verbose: bool = True,
     ):
         self._objective_fn = objective_fn
         self._search_space = search_space

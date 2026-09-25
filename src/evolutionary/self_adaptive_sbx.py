@@ -39,9 +39,9 @@ class SelfAdaptiveSBX:
         return self._eta_c
 
     def crossover(
-            self,
-            parent_1: Individual,
-            parent_2: Individual,
+        self,
+        parent_1: Individual,
+        parent_2: Individual,
     ) -> tuple[Individual, Individual]:
         """
         Perform SBX crossover and record per-gene spread factors.
@@ -72,7 +72,7 @@ class SelfAdaptiveSBX:
         self._memory[child_1.id] = []
         self._memory[child_2.id] = []
 
-        for key in child_1.search_space.keys():
+        for key in child_1.search_space:
             # Sample uniform random variable and compute spread factor β_q
             u = random.random()
             beta_q = self._calculate_spread_factor(u)
@@ -88,8 +88,8 @@ class SelfAdaptiveSBX:
 
             # Enforce type constraints and clamp to search space bounds
             if gene_type is int:
-                child_1_gene = int(round(child_1_gene))
-                child_2_gene = int(round(child_2_gene))
+                child_1_gene = round(child_1_gene)
+                child_2_gene = round(child_2_gene)
 
                 child_1_gene = min(max(child_1_gene, int(lower)), int(upper))
                 child_2_gene = min(max(child_2_gene, int(lower)), int(upper))
@@ -107,11 +107,11 @@ class SelfAdaptiveSBX:
         return child_1, child_2
 
     def update_etas(
-            self,
-            parent_1: Individual,
-            parent_2: Individual,
-            child_1: Individual,
-            child_2: Individual,
+        self,
+        parent_1: Individual,
+        parent_2: Individual,
+        child_1: Individual,
+        child_2: Individual,
     ) -> None:
         """
         Update the distribution index using the winning child and stored spread
@@ -177,9 +177,9 @@ class SelfAdaptiveSBX:
 
     @staticmethod
     def _calculate_genes(
-            beta_q: float,
-            child_1_gene: int | float,
-            child_2_gene: int | float,
+        beta_q: float,
+        child_1_gene: float,
+        child_2_gene: float,
     ) -> tuple[int | float, int | float]:
         r"""
         Compute offspring gene values using the SBX midpoint–step decomposition.
