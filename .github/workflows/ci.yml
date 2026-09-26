@@ -23,15 +23,65 @@ on:
       - "mypy.ini"
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      lint: ${{ github.event_name == 'workflow_dispatch' && 'true' || steps.filter.outputs.lint }}
+      tests: ${{ github.event_name == 'workflow_dispatch' && 'true' || steps.filter.outputs.tests }}
+      docs: ${{ github.event_name == 'workflow_dispatch' && 'true' || steps.filter.outputs.docs }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect affected jobs
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            lint:
+              - "src/**"
+              - "tests/**"
+              - "requirements.in"
+              - "requirements.txt"
+              - "mypy.ini"
+              - ".github/workflows/**"
+            tests:
+              - "src/**"
+              - "tests/**"
+              - "requirements.in"
+              - "requirements.txt"
+              - "mypy.ini"
+              - ".github/workflows/**"
+            docs:
+              - "src/**"
+              - "scripts/generate_docs/**"
+              - "requirements.in"
+              - "requirements.txt"
+              - ".github/workflows/**"
+
   lint:
+    needs: changes
+    if: needs.changes.outputs.lint == 'true'
     uses: ./.github/workflows/lint.yml
 
   tests:
+    needs: changes
+    if: needs.changes.outputs.tests == 'true'
     uses: ./.github/workflows/tests.yml
 
   docs:
-    needs: lint
+    needs: [ changes, lint ]
+    if: >-
+      ${{
+        always()
+        && needs.changes.outputs.docs == 'true'
+        && (needs.lint.result == 'success' || needs.lint.result == 'skipped')
+      }}
     uses: ./.github/workflows/docs.yml
     permissions:
       contents: read
