@@ -100,6 +100,7 @@ class TabNetEvaluator:
             gamma=params.gamma,
             lambda_sparse=params.lambda_sparse,
             optimizer_params={"lr": params.lr},
+            # TODO: adjust device_name based on ray-actors implementation
             device_name="cuda" if torch.cuda.is_available() else "cpu",
             verbose=0,  # Suppress training logs for cleaner output during evolution
         )
