@@ -66,25 +66,12 @@ algorithms (Evolutionary Algorithms, Neural Networks) with exceptionally clean, 
 
 ## Project Structure
 
-```
-PEHPO-master-thesis/
-├── src/               # Core algorithm implementations
-│   ├── evolutionary/  # EA operators, selection, crossover
-│   ├── helpers/       # Shared utilities
-│   ├── ids_tabnet/    # TabNet-based IDS model
-│   └── medical_swin/  # Swin Transformer medical model
-├── datasets/          # Input data
-├── notebooks/         # Exploration/analysis
-├── scripts/           # Utility scripts
-├── .github/
-│   ├── copilot-instructions.md  # symlink → AGENTS.md
-    └── docs.yml                 # pdoc3 generation workflow
-├── AGENTS.md          # AI agent instructions (this file)
-├── main.py            # Entry point
-├── mypy.ini           # mypy config (strict mode, src path, stub ignores)
-├── requirements.in    # Direct deps (pip-compile source)
-└── requirements.txt   # Pinned deps (pip-compile output)
-```
+- `src/`: Python implementation, including evolutionary optimization and TabNet IDS modules.
+- `tests/`: Unit tests.
+- `datasets/`: Dataset documentation and metadata.
+- `notebooks/`: Research and data-preparation notebooks.
+- `scripts/generate_docs/`: Documentation-generation script and instructions.
+- `.github/workflows/`: CI, lint, test, and documentation workflows.
 
 ---
 
@@ -92,13 +79,15 @@ PEHPO-master-thesis/
 
 - **Activate venv:** `source .venv/bin/activate`
 - **Lint/format:** `ruff check src/` (lint), `ruff format src/` (format), `mypy src/` (type check)
+- **Run tests:** `PYTHONPATH=src .venv/bin/python -m unittest discover -s tests`
 
 ### Definition of Done
 
 A task is complete when:
 
 1. Code passes type checks (mypy strict)
-2. All docstrings present and pdoc3-compliant
-3. No global state introduced
-4. Memory cleanup explicit for iterative loops
-5. Mathematical variable names match source paper notation
+2. Unit tests pass
+3. All docstrings present and pdoc3-compliant
+4. No global state introduced
+5. Memory cleanup explicit for iterative loops
+6. Mathematical variable names match source paper notation
