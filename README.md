@@ -63,7 +63,8 @@ active virtual environment match that file exactly, including removing packages 
 From the project root, run the same test command used by CI:
 
 ```bash
-PYTHONPATH=src .venv/bin/python -m unittest discover -s tests
+PYTHONPATH=src .venv/bin/python -m unittest discover -s .
 ```
 
-This command uses the repository's configured source path and executes the test suite in the `tests/` directory.
+This command uses the repository's configured source path and recursively executes
+the categorized test suites under `tests/`.
