@@ -30,7 +30,7 @@ def make_individual(gene: int, fitness: float = 0.0) -> Individual:
 class TrackingCrossover:
     """Minimal crossover double that exposes child-memory lifecycle."""
 
-    def __init__(self, child_values: tuple[int, int] = (10, 9)) -> None:
+    def __init__(self, child_values: tuple[int, int] = (10, 9)):
         self.eta_c = 2.0
         self._child_values = child_values
         self._memory: dict[str, list[float]] = {}

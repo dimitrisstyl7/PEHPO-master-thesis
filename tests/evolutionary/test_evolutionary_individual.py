@@ -75,7 +75,7 @@ class IndividualTests(unittest.TestCase):
             patch("evolutionary.individual.random.randint", return_value=1),
             patch(
                 "evolutionary.individual.random.uniform",
-                return_value=4.9,
+                side_effect=[4.9, 5.1],
             ),
             patch("evolutionary.individual.random.choice") as choice,
         ):
