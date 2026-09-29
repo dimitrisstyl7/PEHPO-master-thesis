@@ -74,6 +74,7 @@ def make_algorithm(
     max_generations: int,
     elites_count: int,
     verbose: bool,
+    tournament_size: int = 1,
 ) -> GeneticAlgorithm:
     """Build a GA using the in-memory deterministic objective."""
     return GeneticAlgorithm(
@@ -81,7 +82,7 @@ def make_algorithm(
         search_space=SEARCH_SPACE,
         population_size=population_size,
         max_generations=max_generations,
-        tournament_size=1,
+        tournament_size=tournament_size,
         mutation_rate=0.0,
         sub_areas_number=2,
         elites_count=elites_count,
@@ -121,6 +122,7 @@ class GeneticAlgorithmTests(unittest.TestCase):
             max_generations=0,
             elites_count=1,
             verbose=False,
+            tournament_size=2,
         )
         population = [
             make_individual(1, fitness=1.0),
@@ -134,7 +136,7 @@ class GeneticAlgorithmTests(unittest.TestCase):
         ) as sample:
             selected = algorithm._tournament_selection(population)
 
-        sample.assert_called_once_with(population, 1)
+        sample.assert_called_once_with(population, 2)
         self.assertIs(selected, population[2])
 
     def test_get_elites_sorts_and_copies_top_individuals(self) -> None:
