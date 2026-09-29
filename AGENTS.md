@@ -78,7 +78,7 @@ algorithms (Evolutionary Algorithms, Neural Networks) with exceptionally clean, 
 ## Workflows
 
 - **Activate venv:** `source .venv/bin/activate`
-- **Lint/format:** `ruff check src/` (lint), `ruff format src/` (format), `mypy src/` (type check)
+- **Lint/format:** `ruff check src/ tests/` (lint), `ruff format src/ tests/`  (format), `mypy src/` (type check)
 - **Run tests:** `PYTHONPATH=src .venv/bin/python -m unittest discover -s .`
 
 ### Definition of Done
