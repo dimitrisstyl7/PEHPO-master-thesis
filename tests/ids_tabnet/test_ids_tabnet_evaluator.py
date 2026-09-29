@@ -7,7 +7,7 @@ import numpy as np
 
 from ids_tabnet.evaluator import TabNetEvaluator
 from ids_tabnet.params import ModelParams
-from tests.support import make_binary_classification_frame
+from tests.ids_tabnet.support import make_binary_classification_frame
 
 
 class TabNetEvaluatorTests(unittest.TestCase):
