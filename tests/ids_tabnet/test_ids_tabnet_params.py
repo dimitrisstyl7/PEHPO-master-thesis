@@ -31,9 +31,12 @@ class ModelParamsTests(unittest.TestCase):
     def test_rejects_gamma_outside_inclusive_bounds(self) -> None:
         """Values outside the declared gamma interval raise the documented error."""
         for gamma in (0.99, 2.01):
-            with self.subTest(gamma=gamma), self.assertRaisesRegex(
-                ValueError,
-                r"^Gamma should be between 1\.0 and 2\.0\.$",
+            with (
+                self.subTest(gamma=gamma),
+                self.assertRaisesRegex(
+                    ValueError,
+                    r"^Gamma should be between 1\.0 and 2\.0\.$",
+                ),
             ):
                 ModelParams(
                     n_da=16,

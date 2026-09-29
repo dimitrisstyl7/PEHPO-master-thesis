@@ -68,12 +68,12 @@ class SelfAdaptiveSBX:
             genes=parent_2.genes.copy(),
         )
 
-        # Initialize memory slots — will accumulate β_q values per gene
+        # Initialize memory slots — will accumulate beta_q values per gene
         self._memory[child_1.id] = []
         self._memory[child_2.id] = []
 
         for key in child_1.search_space:
-            # Sample uniform random variable and compute spread factor β_q
+            # Sample uniform random variable and compute spread factor beta_q
             u = random.random()
             beta_q = self._calculate_spread_factor(u)
             child_1_gene, child_2_gene = self._calculate_genes(
@@ -100,11 +100,16 @@ class SelfAdaptiveSBX:
             child_1.genes[key] = child_1_gene
             child_2.genes[key] = child_2_gene
 
-            # Record β_q for both children for later η_c adaptation
+            # Record beta_q for both children for later eta_c adaptation
             self._memory[child_1.id].append(beta_q)
             self._memory[child_2.id].append(beta_q)
 
         return child_1, child_2
+
+    def discard_children(self, *children: Individual) -> None:
+        """Release crossover memory for children removed before adaptation."""
+        for child in children:
+            self._memory.pop(child.id, None)
 
     def update_etas(
         self,
@@ -137,7 +142,7 @@ class SelfAdaptiveSBX:
         proposed_etas: list[float] = []
         child_is_better = best_child.fitness > best_parent.fitness
 
-        # Compute a proposed η_c update for each stored β_q value
+        # Compute a proposed eta_c update for each stored beta_q value
         for beta_q in beta_values:
             if beta_q > 1:  # Standard case: offspring spread beyond parent midpoint
                 numerator = math.log(beta_q)
@@ -146,14 +151,14 @@ class SelfAdaptiveSBX:
                 else:
                     denominator = math.log(1 + (beta_q - 1) / self._alpha)
                 eta_prime = -1 + (self._eta_c + 1) * (numerator / denominator)
-            else:  # β_q ≤ 1: offspring collapsed near parent midpoint — use closed-form update
+            else:  # beta_q ≤ 1: offspring collapsed near parent midpoint — use closed-form update
                 if child_is_better:
                     eta_prime = (self._eta_c + 1) / self._alpha - 1
                 else:
                     eta_prime = self._alpha * (self._eta_c + 1) - 1
             proposed_etas.append(eta_prime)
 
-        # Average all proposed updates and clamp to valid η_c bounds
+        # Average all proposed updates and clamp to valid eta_c bounds
         average_eta = sum(proposed_etas) / len(proposed_etas)
         lower = self._eta_c_bounds["min"]
         upper = self._eta_c_bounds["max"]

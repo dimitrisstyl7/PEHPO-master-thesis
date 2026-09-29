@@ -163,16 +163,24 @@ class GeneticAlgorithm:
                 children.extend([child_1, child_2])
                 pairs.append(
                     (parent_1, parent_2, child_1, child_2),
-                )  # Store for η_c update
+                )  # Store for eta_c update
 
             # Trim to exact target in case (population_size - elites_count) is odd
             children = children[:target_children]
             # Keep only complete parent-child pairs that still have both evaluated children
-            pairs = pairs[: len(children) // 2]
+            retained_pair_count = len(children) // 2
+            for _, _, discarded_child_1, discarded_child_2 in pairs[
+                retained_pair_count:
+            ]:
+                self._crossover.discard_children(
+                    discarded_child_1,
+                    discarded_child_2,
+                )
+            pairs = pairs[:retained_pair_count]
             # Only evaluate new children — elites already carry valid fitness scores
             self._evaluate_population(children)
 
-            # Adapt η_c based on whether each child outperformed its parents
+            # Adapt eta_c based on whether each child outperformed its parents
             for parent_1, parent_2, child_1, child_2 in pairs:
                 self._crossover.update_etas(parent_1, parent_2, child_1, child_2)
             pairs.clear()  # Explicit cleanup — Individual refs accumulate across generations

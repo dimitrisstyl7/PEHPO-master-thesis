@@ -82,7 +82,7 @@ containers:
 - Tests should use `unittest` and run with:
 
   ```bash
-  PYTHONPATH=src .venv/bin/python -m unittest discover -s tests
+  PYTHONPATH=src .venv/bin/python -m unittest discover -s .
   ```
 
 - Relevant checks are:
