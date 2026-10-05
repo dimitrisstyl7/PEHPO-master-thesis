@@ -5,13 +5,15 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 
-from ids_tabnet.evaluator import TabNetEvaluator
+from ids_tabnet.evaluator import DeviceName, TabNetEvaluator
 from ids_tabnet.params import ModelParams
 from tests.ids_tabnet.support import make_binary_classification_frame
 
 
 class TabNetEvaluatorTests(unittest.TestCase):
     """Verify evaluator orchestration without real model training."""
+
+    dataset_path = "datasets/cicids2017_cleaned.csv"
 
     def setUp(self) -> None:
         """Create a fresh balanced fixture for each test."""
@@ -31,7 +33,7 @@ class TabNetEvaluatorTests(unittest.TestCase):
             "ids_tabnet.evaluator.load_csv",
             return_value=self.data.copy(),
         ):
-            return TabNetEvaluator()
+            return TabNetEvaluator(self.dataset_path)
 
     def test_fixture_supports_balanced_60_20_20_allocation(self) -> None:
         """The fixture has enough observations for two binary stratified splits."""
@@ -57,10 +59,10 @@ class TabNetEvaluatorTests(unittest.TestCase):
             "ids_tabnet.evaluator.load_csv",
             side_effect=[self.data.copy(), self.data.copy()],
         ) as load_csv:
-            first = TabNetEvaluator()
-            second = TabNetEvaluator()
+            first = TabNetEvaluator(self.dataset_path)
+            second = TabNetEvaluator(self.dataset_path)
 
-        load_csv.assert_any_call("datasets/cicids2017_cleaned.csv")
+        load_csv.assert_any_call(self.dataset_path)
         self.assertEqual(load_csv.call_count, 2)
 
         for first_partition, second_partition in (
@@ -73,13 +75,16 @@ class TabNetEvaluatorTests(unittest.TestCase):
         ):
             np.testing.assert_array_equal(first_partition, second_partition)
 
+    def test_dataset_path_is_required(self) -> None:
+        """Construction without an explicit dataset path is rejected."""
+        with self.assertRaises(TypeError):
+            TabNetEvaluator()
+
     @patch("ids_tabnet.evaluator.f1_score", return_value=np.float64(0.625))
-    @patch("ids_tabnet.evaluator.torch.cuda.is_available", return_value=False)
     @patch("ids_tabnet.evaluator.TabNetClassifier")
-    def test_evaluate_configures_cpu_model_and_scores_validation(
+    def test_evaluate_configures_model_and_scores_validation(
         self,
         classifier_type: MagicMock,
-        cuda_available: MagicMock,
         f1_score: MagicMock,
     ) -> None:
         """evaluate trains with declared settings and scores validation data."""
@@ -89,7 +94,6 @@ class TabNetEvaluatorTests(unittest.TestCase):
 
         result = evaluator.evaluate(self.params)
 
-        cuda_available.assert_called_once_with()
         classifier_type.assert_called_once_with(
             n_d=16,
             n_a=16,
@@ -97,7 +101,7 @@ class TabNetEvaluatorTests(unittest.TestCase):
             gamma=1.5,
             lambda_sparse=1e-5,
             optimizer_params={"lr": 0.02},
-            device_name="cpu",
+            device_name="auto",
             verbose=0,
         )
 
@@ -121,12 +125,10 @@ class TabNetEvaluatorTests(unittest.TestCase):
         self.assertIsInstance(result, float)
 
     @patch("ids_tabnet.evaluator.f1_score", return_value=np.float64(0.75))
-    @patch("ids_tabnet.evaluator.torch.cuda.is_available", return_value=False)
     @patch("ids_tabnet.evaluator.TabNetClassifier")
     def test_evaluate_test_scores_test_data(
         self,
         classifier_type: MagicMock,
-        cuda_available: MagicMock,
         f1_score: MagicMock,
     ) -> None:
         """evaluate_test predicts and scores the held-out test partition."""
@@ -143,29 +145,33 @@ class TabNetEvaluatorTests(unittest.TestCase):
         self.assertEqual(f1_kwargs, {"average": "macro", "zero_division": 0})
         self.assertEqual(result, 0.75)
         self.assertIsInstance(result, float)
-        cuda_available.assert_called_once_with()
 
     @patch("ids_tabnet.evaluator.f1_score", return_value=0.5)
     @patch("ids_tabnet.evaluator.torch.cuda.is_available", return_value=True)
     @patch("ids_tabnet.evaluator.TabNetClassifier")
-    def test_evaluate_selects_cuda_when_available(
+    def test_evaluate_forwards_explicit_device(
         self,
         classifier_type: MagicMock,
-        cuda_available: MagicMock,
+        _: MagicMock,
         f1_score: MagicMock,
     ) -> None:
-        """CUDA availability changes only the declared model device."""
-        evaluator = self.make_evaluator()
+        """An explicit device is forwarded to TabNet unchanged."""
+        with patch("ids_tabnet.evaluator.load_csv", return_value=self.data.copy()):
+            evaluator = TabNetEvaluator(self.dataset_path, DeviceName.CUDA)
         classifier_type.return_value.predict.return_value = np.array(
             [0, 1, 0, 1, 0, 1, 0, 1]
         )
 
         evaluator.evaluate(self.params)
 
-        classifier_type.assert_called_once()
-        self.assertEqual(
-            classifier_type.call_args.kwargs["device_name"],
-            "cuda",
-        )
-        cuda_available.assert_called_once_with()
+        self.assertEqual(classifier_type.call_args.kwargs["device_name"], "cuda")
         f1_score.assert_called_once()
+
+    @patch("ids_tabnet.evaluator.torch.cuda.is_available", return_value=False)
+    def test_explicit_cuda_raises_when_unavailable(self, _: MagicMock) -> None:
+        """Explicit CUDA without a CUDA device raises RuntimeError."""
+        with (
+            self.assertRaises(RuntimeError),
+            patch("ids_tabnet.evaluator.load_csv", return_value=self.data.copy()),
+        ):
+            TabNetEvaluator(self.dataset_path, DeviceName.CUDA)

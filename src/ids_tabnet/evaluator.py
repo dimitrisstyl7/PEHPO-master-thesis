@@ -1,6 +1,7 @@
 """Model evaluation utilities for TabNet-based IDS experiments."""
 
 import typing
+from enum import StrEnum
 from typing import Any
 
 import torch
@@ -17,6 +18,28 @@ __pdoc__ = {
 }
 
 
+class DeviceName(StrEnum):
+    """
+    Device name for TabNetClassifier.
+
+    Supported values:
+        * `AUTO`: Automatically select the device.
+        * `CPU`: Run on the CPU.
+        * `CUDA`: Run on a CUDA-capable GPU.
+    """
+
+    # TODO: for now, only CPU will be used in the GA evaluation, but we may want to add GPU support later.
+
+    AUTO = "auto"
+    """Automatically select the device."""
+
+    CPU = "cpu"
+    """Run on the CPU."""
+
+    CUDA = "cuda"
+    """Run on a CUDA-capable GPU."""
+
+
 class TabNetEvaluator:
     """
     Evaluates a TabNet classifier on a fixed train/val/test split.
@@ -28,10 +51,22 @@ class TabNetEvaluator:
 
     Args:
         dataset_path: Path to the dataset CSV file.
-            Default is `"datasets/cicids2017_cleaned.csv"`.
+        device_name: Requested device. `AUTO` is resolved by TabNet itself (CUDA if available,
+            otherwise CPU).
+
+    Raises:
+        RuntimeError: If `device_name` is `DeviceName.CUDA` and CUDA is not available.
     """
 
-    def __init__(self, dataset_path: str = "datasets/cicids2017_cleaned.csv"):
+    def __init__(
+        self,
+        dataset_path: str,
+        device_name: DeviceName = DeviceName.AUTO,
+    ):
+        if device_name is DeviceName.CUDA and not torch.cuda.is_available():
+            raise RuntimeError("DeviceName.CUDA requested but CUDA is not available.")
+
+        self.device_name = device_name
         df = typing.cast(DataFrame, load_csv(dataset_path))
         X = df.drop(columns=["Label"]).to_numpy()
         y = df["Label"].to_numpy()
@@ -100,8 +135,7 @@ class TabNetEvaluator:
             gamma=params.gamma,
             lambda_sparse=params.lambda_sparse,
             optimizer_params={"lr": params.lr},
-            # TODO: adjust device_name based on ray-actors implementation
-            device_name="cuda" if torch.cuda.is_available() else "cpu",
+            device_name=self.device_name.value,
             verbose=0,  # Suppress training logs for cleaner output during evolution
         )
 
