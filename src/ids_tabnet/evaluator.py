@@ -64,7 +64,9 @@ class TabNetEvaluator:
         device_name: DeviceName = DeviceName.AUTO,
     ):
         if device_name is DeviceName.CUDA and not torch.cuda.is_available():
-            raise RuntimeError("DeviceName.CUDA requested but CUDA is not available.")
+            raise RuntimeError(
+                "A CUDA-capable GPU was requested, but CUDA is not available. Use 'CPU' or 'AUTO' instead."
+            )
 
         self.device_name = device_name
         df = typing.cast(DataFrame, load_csv(dataset_path))
