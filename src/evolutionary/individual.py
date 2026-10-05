@@ -57,21 +57,6 @@ class Individual:
         self.fitness = fitness
         self.id = uuid.uuid4().hex
 
-    def _generate_random_genes(self) -> dict[str, int | float]:
-        """
-        Generates a random valid gene configuration based on the search space.
-
-        Returns:
-            Gene configuration sampled uniformly within bounds, typed per the search space.
-        """
-        new_genes: dict[str, int | float] = {}
-        for key, bounds in self.search_space.items():
-            if bounds["type"] is int:
-                new_genes[key] = random.randint(int(bounds["min"]), int(bounds["max"]))
-            elif bounds["type"] is float:
-                new_genes[key] = random.uniform(bounds["min"], bounds["max"])
-        return new_genes
-
     def mutate(self) -> None:
         r"""
         Mutates genes using a GLEAM-inspired bounded perturbation strategy.
@@ -117,3 +102,18 @@ class Individual:
                     new_value = value + step
 
             self.genes[key] = new_value
+
+    def _generate_random_genes(self) -> dict[str, int | float]:
+        """
+        Generates a random valid gene configuration based on the search space.
+
+        Returns:
+            Gene configuration sampled uniformly within bounds, typed per the search space.
+        """
+        new_genes: dict[str, int | float] = {}
+        for key, bounds in self.search_space.items():
+            if bounds["type"] is int:
+                new_genes[key] = random.randint(int(bounds["min"]), int(bounds["max"]))
+            elif bounds["type"] is float:
+                new_genes[key] = random.uniform(bounds["min"], bounds["max"])
+        return new_genes
