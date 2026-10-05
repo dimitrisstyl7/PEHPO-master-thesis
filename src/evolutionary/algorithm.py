@@ -60,68 +60,6 @@ class GeneticAlgorithm:
         self._verbose = verbose
         self._crossover = SelfAdaptiveSBX()  # type: ignore[no-untyped-call]
 
-    def _initialize_population(self) -> list[Individual]:
-        """
-        Create the initial generation of randomly-initialized individuals.
-
-        Returns:
-            `population_size` individuals with genes sampled uniformly
-            from the search space bounds.
-        """
-        return [
-            Individual(
-                search_space=self._search_space,
-                mutation_rate=self._mutation_rate,
-                sub_areas_number=self._sub_areas_number,
-            )
-            for _ in range(self._population_size)
-        ]
-
-    def _evaluate_population(self, population: list[Individual]) -> None:
-        """
-        Assign fitness scores to each individual via the objective function.
-
-        Mutates each individual's `.fitness` attribute in place. Elites should
-        **not** be passed here — their fitness from the prior generation is valid.
-        """
-        for individual in population:
-            individual.fitness = self._objective_fn(individual.genes)
-
-    def _tournament_selection(self, population: list[Individual]) -> Individual:
-        """
-        Select one parent via $k$-tournament selection.
-
-        Draws `tournament_size` candidates without replacement and returns the
-        one with the highest fitness. Stochastic; uses `random.sample`.
-
-        Returns:
-            Highest-fitness individual among the sampled tournament candidates.
-        """
-        candidates = random.sample(population, self._tournament_size)
-        return max(candidates, key=lambda ind: ind.fitness)
-
-    def _get_elites(self, population: list[Individual]) -> list[Individual]:
-        """
-        Extract the top-performing individuals for guaranteed generational survival.
-
-        Genes are copied to prevent mutation aliasing when the elite is reused
-        as a parent in tournament selection during the same generation.
-
-        Returns:
-            `elites_count` highest-fitness individuals sorted descending by fitness.
-        """
-        sorted_pop = sorted(population, key=lambda ind: ind.fitness, reverse=True)
-        return [
-            Individual(
-                search_space=elite.search_space,
-                mutation_rate=elite.mutation_rate,
-                sub_areas_number=elite.sub_areas_number,
-                genes=elite.genes.copy(),
-                fitness=elite.fitness,
-            )
-            for elite in sorted_pop[: self._elites_count]
-        ]
-
     def run(self) -> Individual:
         r"""
         Execute the full generational evolutionary loop.
@@ -198,3 +136,65 @@ class GeneticAlgorithm:
                 )
 
         return best
+
+    def _initialize_population(self) -> list[Individual]:
+        """
+        Create the initial generation of randomly-initialized individuals.
+
+        Returns:
+            `population_size` individuals with genes sampled uniformly
+            from the search space bounds.
+        """
+        return [
+            Individual(
+                search_space=self._search_space,
+                mutation_rate=self._mutation_rate,
+                sub_areas_number=self._sub_areas_number,
+            )
+            for _ in range(self._population_size)
+        ]
+
+    def _evaluate_population(self, population: list[Individual]) -> None:
+        """
+        Assign fitness scores to each individual via the objective function.
+
+        Mutates each individual's `.fitness` attribute in place. Elites should
+        **not** be passed here — their fitness from the prior generation is valid.
+        """
+        for individual in population:
+            individual.fitness = self._objective_fn(individual.genes)
+
+    def _tournament_selection(self, population: list[Individual]) -> Individual:
+        """
+        Select one parent via $k$-tournament selection.
+
+        Draws `tournament_size` candidates without replacement and returns the
+        one with the highest fitness. Stochastic; uses `random.sample`.
+
+        Returns:
+            Highest-fitness individual among the sampled tournament candidates.
+        """
+        candidates = random.sample(population, self._tournament_size)
+        return max(candidates, key=lambda ind: ind.fitness)
+
+    def _get_elites(self, population: list[Individual]) -> list[Individual]:
+        """
+        Extract the top-performing individuals for guaranteed generational survival.
+
+        Genes are copied to prevent mutation aliasing when the elite is reused
+        as a parent in tournament selection during the same generation.
+
+        Returns:
+            `elites_count` highest-fitness individuals sorted descending by fitness.
+        """
+        sorted_pop = sorted(population, key=lambda ind: ind.fitness, reverse=True)
+        return [
+            Individual(
+                search_space=elite.search_space,
+                mutation_rate=elite.mutation_rate,
+                sub_areas_number=elite.sub_areas_number,
+                genes=elite.genes.copy(),
+                fitness=elite.fitness,
+            )
+            for elite in sorted_pop[: self._elites_count]
+        ]
