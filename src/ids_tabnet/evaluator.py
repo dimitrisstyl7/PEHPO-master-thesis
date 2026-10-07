@@ -92,19 +92,20 @@ class TabNetEvaluator:
             random_state=42,
         )
 
-    def evaluate(self, params: ModelParams) -> float:
+    def evaluate(self, params: ModelParams, seed: int = 0) -> float:
         """
         Trains a TabNetClassifier with the given model parameters and evaluates it on the validation set.
 
         Args:
             params: Hyperparameters for this TabNet evaluation run.
+            seed: Random seed for reproducibility.
 
         Returns:
             Macro F1-score of the model on the validation set.
         """
-        return self._fit_and_score(params, self.X_val, self.y_val)
+        return self._fit_and_score(params, self.X_val, self.y_val, seed)
 
-    def evaluate_test(self, params: ModelParams) -> float:
+    def evaluate_test(self, params: ModelParams, seed: int = 0) -> float:
         """
         Trains a TabNetClassifier with the given model parameters and evaluates it on the test set.
 
@@ -112,17 +113,15 @@ class TabNetEvaluator:
 
         Args:
             params: Hyperparameters for this TabNet evaluation run.
+            seed: Random seed for reproducibility.
 
         Returns:
             Macro F1-score of the model on the test set.
         """
-        return self._fit_and_score(params, self.X_test, self.y_test)
+        return self._fit_and_score(params, self.X_test, self.y_test, seed)
 
     def _fit_and_score(
-        self,
-        params: ModelParams,
-        X_score: Any,
-        y_score: Any,
+        self, params: ModelParams, X_score: Any, y_score: Any, seed: int
     ) -> float:
         """
         Fit TabNet once and score on the provided split.
@@ -138,6 +137,7 @@ class TabNetEvaluator:
             lambda_sparse=params.lambda_sparse,
             optimizer_params={"lr": params.lr},
             device_name=self.device_name.value,
+            seed=seed,
             verbose=0,  # Suppress training logs for cleaner output during evolution
         )
 

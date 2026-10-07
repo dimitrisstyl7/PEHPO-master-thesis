@@ -92,7 +92,7 @@ class TabNetEvaluatorTests(unittest.TestCase):
         classifier = classifier_type.return_value
         classifier.predict.return_value = np.array([0, 1, 0, 1, 0, 1, 0, 1])
 
-        result = evaluator.evaluate(self.params)
+        result = evaluator.evaluate(self.params, seed=17)
 
         classifier_type.assert_called_once_with(
             n_d=16,
@@ -102,6 +102,7 @@ class TabNetEvaluatorTests(unittest.TestCase):
             lambda_sparse=1e-5,
             optimizer_params={"lr": 0.02},
             device_name="auto",
+            seed=17,
             verbose=0,
         )
 
@@ -136,8 +137,19 @@ class TabNetEvaluatorTests(unittest.TestCase):
         classifier = classifier_type.return_value
         classifier.predict.return_value = np.array([0, 1, 0, 1, 0, 1, 0, 1])
 
-        result = evaluator.evaluate_test(self.params)
+        result = evaluator.evaluate_test(self.params, seed=23)
 
+        classifier_type.assert_called_once_with(
+            n_d=16,
+            n_a=16,
+            n_steps=5,
+            gamma=1.5,
+            lambda_sparse=1e-5,
+            optimizer_params={"lr": 0.02},
+            device_name="auto",
+            seed=23,
+            verbose=0,
+        )
         classifier.predict.assert_called_once_with(evaluator.X_test)
         f1_args, f1_kwargs = f1_score.call_args
         self.assertIs(f1_args[0], evaluator.y_test)
