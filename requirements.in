@@ -5,3 +5,4 @@ pdoc3
 ruff
 pandas-stubs
 mypy
+ray
