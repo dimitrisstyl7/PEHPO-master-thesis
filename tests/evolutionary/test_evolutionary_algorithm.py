@@ -1,9 +1,11 @@
 """Tests for genetic-algorithm orchestration and generation lifecycle."""
 
 import unittest
+from collections.abc import Sequence
 from unittest.mock import patch
 
 from evolutionary.algorithm import GeneticAlgorithm
+from evolutionary.evaluation import BatchEvaluator, serial_batch_evaluator
 from evolutionary.individual import Individual, SearchSpaceEntry
 
 SEARCH_SPACE: dict[str, SearchSpaceEntry] = {
@@ -75,10 +77,15 @@ def make_algorithm(
     elites_count: int,
     verbose: bool,
     tournament_size: int = 1,
+    fitness_evaluator: BatchEvaluator | None = None,
 ) -> GeneticAlgorithm:
     """Build a GA using the in-memory deterministic objective."""
     return GeneticAlgorithm(
-        objective_fn=score,
+        fitness_evaluator=(
+            serial_batch_evaluator(score)
+            if fitness_evaluator is None
+            else fitness_evaluator
+        ),
         search_space=SEARCH_SPACE,
         population_size=population_size,
         max_generations=max_generations,
@@ -289,3 +296,72 @@ class GeneticAlgorithmTests(unittest.TestCase):
         self.assertEqual(len(crossover.created), 4)
         self.assertEqual(len(crossover.updated), 2)
         self.assertEqual(crossover._memory, {})
+
+    def test_evaluates_initial_and_child_slices_in_separate_batch_calls(self) -> None:
+        """Evaluation forms a barrier before selection and excludes elites."""
+        calls: list[list[dict[str, int | float]]] = []
+        events: list[str] = []
+        evaluation_number = 0
+
+        def evaluate(
+            gene_dicts: Sequence[dict[str, int | float]],
+        ) -> list[float]:
+            nonlocal evaluation_number
+            events.append("evaluate")
+            calls.append([genes.copy() for genes in gene_dicts])
+            base_fitness = 100.0 if evaluation_number == 0 else 200.0
+            evaluation_number += 1
+            return [base_fitness + float(genes["gene"]) for genes in gene_dicts]
+
+        algorithm = make_algorithm(
+            population_size=4,
+            max_generations=1,
+            elites_count=2,
+            verbose=False,
+            fitness_evaluator=evaluate,
+        )
+        initial_population = [
+            make_individual(1),
+            make_individual(2),
+            make_individual(3),
+            make_individual(4),
+        ]
+        algorithm._crossover = TrackingCrossover()
+        original_get_elites = algorithm._get_elites
+        captured_elites: list[list[Individual]] = []
+
+        def capture_elites(population: list[Individual]) -> list[Individual]:
+            elites = original_get_elites(population)
+            captured_elites.append(elites)
+            return elites
+
+        with (
+            patch.object(
+                algorithm,
+                "_initialize_population",
+                return_value=initial_population,
+            ),
+            patch.object(
+                algorithm,
+                "_tournament_selection",
+                side_effect=lambda _population: (
+                    events.append("select") or initial_population[0]
+                ),
+            ),
+            patch.object(algorithm, "_get_elites", side_effect=capture_elites),
+            patch("evolutionary.individual.random.random", return_value=1.0),
+        ):
+            algorithm.run()
+
+        self.assertGreater(events.index("select"), events.index("evaluate"))
+        self.assertEqual(
+            [elite.fitness for elite in captured_elites[0]],
+            [104.0, 103.0],
+        )
+        self.assertEqual(
+            [[genes["gene"] for genes in call] for call in calls],
+            [
+                [1, 2, 3, 4],
+                [10, 9],
+            ],
+        )

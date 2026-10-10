@@ -61,14 +61,28 @@ exercise adaptation and cleanup without sampling-based assertions.
 Tests `evolutionary.algorithm.GeneticAlgorithm` orchestration with small
 in-memory individuals and a deterministic objective:
 
-| Test                                                       | Purpose                                                                                         |
-|------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
-| `test_initializes_and_evaluates_configured_population`     | Verifies configured population size, bounded gene initialization, and objective evaluation.     |
-| `test_tournament_selection_returns_best_sampled_candidate` | Verifies tournament selection returns the fittest sampled candidate.                            |
-| `test_get_elites_sorts_and_copies_top_individuals`         | Verifies elites are sorted, retain fitness, and receive independent gene dictionaries.          |
-| `test_run_tracks_best_and_keeps_exact_population_size`     | Verifies generation sizing, global best tracking, complete-pair adaptation, and verbose output. |
-| `test_run_suppresses_generation_output_when_not_verbose`   | Verifies non-verbose generations execute without printing.                                      |
-| `test_run_cleans_memory_for_discarded_odd_child_pair`      | Verifies odd-target trimming adapts complete pairs and releases discarded-child memory.         |
+| Test                                                              | Purpose                                                                                                  |
+|-------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `test_initializes_and_evaluates_configured_population`            | Verifies configured population size, bounded gene initialization, and objective evaluation.              |
+| `test_tournament_selection_returns_best_sampled_candidate`        | Verifies tournament selection returns the fittest sampled candidate.                                     |
+| `test_get_elites_sorts_and_copies_top_individuals`                | Verifies elites are sorted, retain fitness, and receive independent gene dictionaries.                   |
+| `test_run_tracks_best_and_keeps_exact_population_size`            | Verifies generation sizing, global best tracking, complete-pair adaptation, and verbose output.          |
+| `test_run_suppresses_generation_output_when_not_verbose`          | Verifies non-verbose generations execute without printing.                                               |
+| `test_run_cleans_memory_for_discarded_odd_child_pair`             | Verifies odd-target trimming adapts complete pairs and releases discarded-child memory.                  |
+| `test_evaluates_initial_and_child_slices_in_separate_batch_calls` | Verifies evaluation precedes selection, retains distinct elite fitness, and uses separate ordered calls. |
 
 `TrackingCrossover` records child creation, adaptation pairs, and cleanup so
 the odd-offspring regression remains deterministic.
+
+### `test_evolutionary_evaluation.py`
+
+Tests ordered batch fitness contracts and serial scalar-objective adaptation:
+
+| Test                                                   | Purpose                                                                                             |
+|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| `test_serial_adapter_preserves_input_order`            | Verifies scalar objective results retain submitted gene order.                                      |
+| `test_batch_evaluation_does_not_change_random_state`   | Verifies population batch evaluation consumes no genetic randomness.                                |
+| `test_short_results_raise_before_partial_assignment`   | Verifies missing batch results raise without mutating fitness values.                               |
+| `test_extra_results_raise_before_partial_assignment`   | Verifies extra batch results raise without mutating fitness values.                                 |
+| `test_serial_adapter_preserves_fixed_seed_best_result` | Verifies serial adaptation preserves pre-change best output with mutation and multiple generations. |
+| `test_run_skips_empty_child_batch_evaluator`           | Verifies all-elite generations do not trigger empty evaluator calls.                                |
