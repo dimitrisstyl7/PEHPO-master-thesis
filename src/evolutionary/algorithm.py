@@ -1,8 +1,8 @@
 """Genetic algorithm orchestrator for evolutionary hyperparameter optimization."""
 
 import random
-from collections.abc import Callable
 
+from evolutionary.evaluation import BatchEvaluator
 from evolutionary.individual import Individual, SearchSpaceEntry
 from evolutionary.self_adaptive_sbx import SelfAdaptiveSBX
 
@@ -21,12 +21,14 @@ class GeneticAlgorithm:
 
     Wires together population initialization, tournament selection, Self-Adaptive
     SBX crossover, GLEAM mutation, and elitism into a full generational loop.
-    The objective function is injected at construction time, keeping the GA
-    independent of any specific evaluation domain.
+    An ordered batch evaluator is injected at construction time, keeping the
+    GA independent of any specific evaluation domain.
 
     Args:
-        objective_fn: Maps a gene dict to a scalar fitness score.
-            Called once per individual per generation; higher is better.
+        fitness_evaluator: Receives one ordered population slice of gene
+            dictionaries and returns aligned scalar fitness values. Higher
+            fitness is better. Use `serial_batch_evaluator` to adapt a scalar
+            objective.
         search_space: Bounds and type constraints for each hyperparameter gene.
         population_size: Number of individuals maintained across generations.
         max_generations: Total number of generational cycles to execute.
@@ -39,7 +41,7 @@ class GeneticAlgorithm:
 
     def __init__(
         self,
-        objective_fn: Callable[[dict[str, int | float]], float],
+        fitness_evaluator: BatchEvaluator,
         search_space: dict[str, SearchSpaceEntry],
         population_size: int,
         max_generations: int,
@@ -49,7 +51,7 @@ class GeneticAlgorithm:
         elites_count: int = 1,
         verbose: bool = True,
     ):
-        self._objective_fn = objective_fn
+        self._fitness_evaluator = fitness_evaluator
         self._search_space = search_space
         self._population_size = population_size
         self._max_generations = max_generations
@@ -156,13 +158,28 @@ class GeneticAlgorithm:
 
     def _evaluate_population(self, population: list[Individual]) -> None:
         """
-        Assign fitness scores to each individual via the objective function.
+        Evaluate one population slice through one ordered batch request.
 
-        Mutates each individual's `.fitness` attribute in place. Elites should
-        **not** be passed here — their fitness from the prior generation is valid.
+        The evaluator receives copied gene dictionaries in population order.
+        Its result count is validated before any fitness is assigned, so a
+        malformed result cannot partially mutate the population. Elites should
+        **not** be passed here — their fitness from the prior generation remains
+        valid. Empty slices are skipped without invoking the evaluator.
         """
-        for individual in population:
-            individual.fitness = self._objective_fn(individual.genes)
+        if not population:
+            return
+
+        gene_dicts = [individual.genes.copy() for individual in population]
+        fitnesses = list(self._fitness_evaluator(gene_dicts))
+        if len(fitnesses) != len(population):
+            raise ValueError(
+                "Batch evaluator returned "
+                f"{len(fitnesses)} fitness values for "
+                f"{len(population)} individuals.",
+            )
+
+        for individual, fitness in zip(population, fitnesses, strict=True):
+            individual.fitness = fitness
 
     def _tournament_selection(self, population: list[Individual]) -> Individual:
         """

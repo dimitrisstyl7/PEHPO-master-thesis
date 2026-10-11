@@ -1,9 +1,12 @@
 """Model evaluation utilities for TabNet-based IDS experiments."""
 
 import typing
+from dataclasses import dataclass
+from enum import StrEnum
 from typing import Any
 
 import torch
+from numpy.typing import NDArray
 from pandas.core.frame import DataFrame
 from pytorch_tabnet.tab_model import TabNetClassifier
 from sklearn.metrics import f1_score
@@ -17,6 +20,93 @@ __pdoc__ = {
 }
 
 
+@dataclass(frozen=True)
+class TabNetDataPartitions:
+    """
+    Fixed train, validation, and test arrays used by TabNet evaluation.
+
+    Arrays remain writable for serial evaluation. Call `make_read_only()` before
+    placing partitions in Ray's object store.
+    """
+
+    X_train: NDArray[Any]
+    X_val: NDArray[Any]
+    X_test: NDArray[Any]
+    y_train: NDArray[Any]
+    y_val: NDArray[Any]
+    y_test: NDArray[Any]
+
+    def make_read_only(self) -> None:
+        """Prevent mutation before sharing partitions with Ray workers."""
+        for partition in (
+            self.X_train,
+            self.X_val,
+            self.X_test,
+            self.y_train,
+            self.y_val,
+            self.y_test,
+        ):
+            partition.setflags(write=False)
+
+
+def prepare_tabnet_data(dataset_path: str) -> TabNetDataPartitions:
+    """
+    Load one CSV and create deterministic stratified 60/20/20 partitions.
+
+    The first split reserves 20% for testing. The second split divides the
+    remaining 80% into 60% training and 20% validation data.
+    """
+    df = typing.cast(DataFrame, load_csv(dataset_path))
+    X = df.drop(columns=["Label"]).to_numpy()
+    y = df["Label"].to_numpy()
+
+    X_temp, X_test, y_temp, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+        stratify=y,
+        random_state=42,
+    )
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_temp,
+        y_temp,
+        test_size=0.25,
+        stratify=y_temp,
+        random_state=42,
+    )
+
+    return TabNetDataPartitions(
+        X_train=X_train,
+        X_val=X_val,
+        X_test=X_test,
+        y_train=y_train,
+        y_val=y_val,
+        y_test=y_test,
+    )
+
+
+class DeviceName(StrEnum):
+    """
+    Device name for TabNetClassifier.
+
+    Supported values:
+        * `AUTO`: Automatically select the device.
+        * `CPU`: Run on the CPU.
+        * `CUDA`: Run on a CUDA-capable GPU.
+    """
+
+    # TODO: for now, only CPU will be used in the GA evaluation, but we may want to add GPU support later.
+
+    AUTO = "auto"
+    """Automatically select the device."""
+
+    CPU = "cpu"
+    """Run on the CPU."""
+
+    CUDA = "cuda"
+    """Run on a CUDA-capable GPU."""
+
+
 class TabNetEvaluator:
     """
     Evaluates a TabNet classifier on a fixed train/val/test split.
@@ -28,46 +118,69 @@ class TabNetEvaluator:
 
     Args:
         dataset_path: Path to the dataset CSV file.
-            Default is `"datasets/cicids2017_cleaned.csv"`.
+        device_name: Requested device. `AUTO` is resolved by TabNet itself (CUDA if available,
+            otherwise CPU).
+
+    Raises:
+        RuntimeError: If `device_name` is `DeviceName.CUDA` and CUDA is not available.
     """
 
-    def __init__(self, dataset_path: str = "datasets/cicids2017_cleaned.csv"):
-        df = typing.cast(DataFrame, load_csv(dataset_path))
-        X = df.drop(columns=["Label"]).to_numpy()
-        y = df["Label"].to_numpy()
+    def __init__(
+        self,
+        dataset_path: str,
+        device_name: DeviceName = DeviceName.AUTO,
+    ):
+        self._initialize(device_name, prepare_tabnet_data(dataset_path))
 
-        # First split: separate out the Test set (20%)
-        X_temp, self.X_test, y_temp, self.y_test = train_test_split(
-            X,
-            y,
-            test_size=0.2,
-            stratify=y,
-            random_state=42,
-        )
+    @classmethod
+    def from_partitions(
+        cls,
+        partitions: TabNetDataPartitions,
+        device_name: DeviceName = DeviceName.AUTO,
+    ) -> "TabNetEvaluator":
+        """
+        Construct an evaluator from already prepared fixed partitions.
 
-        # Second split: split the remaining 80% into Train (60%) and Val (20%)
-        # test_size=0.25 here means 25% of the 80%, which is 20% of the total.
-        self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(
-            X_temp,
-            y_temp,
-            test_size=0.25,
-            stratify=y_temp,
-            random_state=42,
-        )
+        This path avoids another CSV load and preserves the same scoring
+        behavior as path-based construction.
+        """
+        evaluator = cls.__new__(cls)
+        evaluator._initialize(device_name, partitions)
+        return evaluator
 
-    def evaluate(self, params: ModelParams) -> float:
+    def _initialize(
+        self,
+        device_name: DeviceName,
+        partitions: TabNetDataPartitions,
+    ) -> None:
+        """Validate device selection and attach prepared partition arrays."""
+        if device_name is DeviceName.CUDA and not torch.cuda.is_available():
+            raise RuntimeError(
+                "A CUDA-capable GPU was requested, but CUDA is not available. Use 'CPU' or 'AUTO' instead."
+            )
+
+        self.device_name = device_name
+        self.X_train = partitions.X_train
+        self.X_val = partitions.X_val
+        self.X_test = partitions.X_test
+        self.y_train = partitions.y_train
+        self.y_val = partitions.y_val
+        self.y_test = partitions.y_test
+
+    def evaluate(self, params: ModelParams, seed: int = 0) -> float:
         """
         Trains a TabNetClassifier with the given model parameters and evaluates it on the validation set.
 
         Args:
             params: Hyperparameters for this TabNet evaluation run.
+            seed: Random seed for reproducibility.
 
         Returns:
             Macro F1-score of the model on the validation set.
         """
-        return self._fit_and_score(params, self.X_val, self.y_val)
+        return self._fit_and_score(params, self.X_val, self.y_val, seed)
 
-    def evaluate_test(self, params: ModelParams) -> float:
+    def evaluate_test(self, params: ModelParams, seed: int = 0) -> float:
         """
         Trains a TabNetClassifier with the given model parameters and evaluates it on the test set.
 
@@ -75,17 +188,15 @@ class TabNetEvaluator:
 
         Args:
             params: Hyperparameters for this TabNet evaluation run.
+            seed: Random seed for reproducibility.
 
         Returns:
             Macro F1-score of the model on the test set.
         """
-        return self._fit_and_score(params, self.X_test, self.y_test)
+        return self._fit_and_score(params, self.X_test, self.y_test, seed)
 
     def _fit_and_score(
-        self,
-        params: ModelParams,
-        X_score: Any,
-        y_score: Any,
+        self, params: ModelParams, X_score: Any, y_score: Any, seed: int
     ) -> float:
         """
         Fit TabNet once and score on the provided split.
@@ -100,8 +211,8 @@ class TabNetEvaluator:
             gamma=params.gamma,
             lambda_sparse=params.lambda_sparse,
             optimizer_params={"lr": params.lr},
-            # TODO: adjust device_name based on ray-actors implementation
-            device_name="cuda" if torch.cuda.is_available() else "cpu",
+            device_name=self.device_name.value,
+            seed=seed,
             verbose=0,  # Suppress training logs for cleaner output during evolution
         )
 
