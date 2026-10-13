@@ -17,6 +17,8 @@ from ids_tabnet.params import ModelParams
 
 __pdoc__ = {
     "TabNetEvaluator.__init__": False,
+    "TabNetEvaluator._initialize": True,
+    "TabNetEvaluator._fit_and_score": True,
 }
 
 

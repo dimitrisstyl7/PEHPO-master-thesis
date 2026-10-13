@@ -20,6 +20,13 @@ from ids_tabnet.params import ModelParams
 
 __pdoc__ = {
     "RayTabNetBatchEvaluator.__init__": False,
+    "RayTabNetBatchEvaluator.__call__": True,
+    "RayTabNetBatchEvaluator._release_actors": True,
+    "RayTabNetBatchEvaluator._validate_resources": True,
+    "RayTabNetBatchEvaluator._cancel_pending_evaluations": True,
+    "RayTabNetBatchEvaluator._available_cpu_units": True,
+    "RayTabNetBatchEvaluator._cluster_cpu_units": True,
+    "_model_params_from_genes": True,
 }
 
 _CPU_RELEASE_POLL_INTERVAL_SECONDS = 0.01
