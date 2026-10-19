@@ -66,8 +66,8 @@ in-memory individuals and a deterministic objective:
 | `test_initializes_and_evaluates_configured_population`            | Verifies configured population size, bounded gene initialization, and objective evaluation.              |
 | `test_tournament_selection_returns_best_sampled_candidate`        | Verifies tournament selection returns the fittest sampled candidate.                                     |
 | `test_get_elites_sorts_and_copies_top_individuals`                | Verifies elites are sorted, retain fitness, and receive independent gene dictionaries.                   |
-| `test_run_tracks_best_and_keeps_exact_population_size`            | Verifies generation sizing, global best tracking, complete-pair adaptation, and verbose output.          |
-| `test_run_suppresses_generation_output_when_not_verbose`          | Verifies non-verbose generations execute without printing.                                               |
+| `test_run_tracks_best_and_keeps_exact_population_size`            | Verifies generation sizing, global best tracking, complete-pair adaptation, and per-generation logging.  |
+| `test_run_emits_no_generation_logs_above_info_threshold`          | Verifies generation progress is logged at INFO, not WARNING or above.                                    |
 | `test_run_cleans_memory_for_discarded_odd_child_pair`             | Verifies odd-target trimming adapts complete pairs and releases discarded-child memory.                  |
 | `test_evaluates_initial_and_child_slices_in_separate_batch_calls` | Verifies evaluation precedes selection, retains distinct elite fitness, and uses separate ordered calls. |
 

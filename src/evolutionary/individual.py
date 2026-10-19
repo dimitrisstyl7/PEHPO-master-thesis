@@ -117,3 +117,6 @@ class Individual:
             elif bounds["type"] is float:
                 new_genes[key] = random.uniform(bounds["min"], bounds["max"])
         return new_genes
+
+    def __str__(self) -> str:
+        return f"Individual(genes={self.genes}, fitness={self.fitness})"

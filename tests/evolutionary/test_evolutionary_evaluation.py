@@ -37,7 +37,6 @@ def build_algorithm(
         mutation_rate=mutation_rate,
         sub_areas_number=sub_areas_number,
         elites_count=elites_count,
-        verbose=False,
     )
 
 

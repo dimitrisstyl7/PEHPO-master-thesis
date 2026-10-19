@@ -75,7 +75,6 @@ def make_algorithm(
     population_size: int,
     max_generations: int,
     elites_count: int,
-    verbose: bool,
     tournament_size: int = 1,
     fitness_evaluator: BatchEvaluator | None = None,
 ) -> GeneticAlgorithm:
@@ -93,7 +92,6 @@ def make_algorithm(
         mutation_rate=0.0,
         sub_areas_number=2,
         elites_count=elites_count,
-        verbose=verbose,
     )
 
 
@@ -106,7 +104,6 @@ class GeneticAlgorithmTests(unittest.TestCase):
             population_size=4,
             max_generations=0,
             elites_count=1,
-            verbose=False,
         )
 
         population = algorithm._initialize_population()
@@ -128,7 +125,6 @@ class GeneticAlgorithmTests(unittest.TestCase):
             population_size=3,
             max_generations=0,
             elites_count=1,
-            verbose=False,
             tournament_size=2,
         )
         population = [
@@ -152,7 +148,6 @@ class GeneticAlgorithmTests(unittest.TestCase):
             population_size=3,
             max_generations=0,
             elites_count=2,
-            verbose=False,
         )
         population = [
             make_individual(1, fitness=1.0),
@@ -171,12 +166,11 @@ class GeneticAlgorithmTests(unittest.TestCase):
         self.assertEqual(population[1].genes["gene"], 5)
 
     def test_run_tracks_best_and_keeps_exact_population_size(self) -> None:
-        """Generations preserve size, update the best fitness, and print when enabled."""
+        """Generations preserve size, update the best fitness, and log each generation."""
         algorithm = make_algorithm(
             population_size=4,
             max_generations=2,
             elites_count=2,
-            verbose=True,
         )
         initial_population = [
             make_individual(1),
@@ -199,12 +193,12 @@ class GeneticAlgorithmTests(unittest.TestCase):
                 return_value=initial_population[0],
             ),
             patch("evolutionary.individual.random.random", return_value=1.0),
-            patch("builtins.print") as print_mock,
             patch.object(
                 algorithm,
                 "_get_elites",
                 wraps=algorithm._get_elites,
             ) as get_elites,
+            self.assertLogs("evolutionary.algorithm", level="INFO") as logs,
         ):
             best = algorithm.run()
 
@@ -215,15 +209,19 @@ class GeneticAlgorithmTests(unittest.TestCase):
             [4, 4],
         )
         self.assertEqual(len(crossover.updated), 2)
-        self.assertEqual(print_mock.call_count, 2)
+        generation_records = [
+            record
+            for record in logs.records
+            if record.getMessage().startswith("Generation")
+        ]
+        self.assertEqual(len(generation_records), 2)
 
-    def test_run_suppresses_generation_output_when_not_verbose(self) -> None:
-        """Non-verbose runs still execute generations without printing."""
+    def test_run_emits_no_generation_logs_above_info_threshold(self) -> None:
+        """Generation progress is INFO, so a WARNING threshold suppresses it."""
         algorithm = make_algorithm(
             population_size=4,
             max_generations=1,
             elites_count=2,
-            verbose=False,
         )
         initial_population = [
             make_individual(1),
@@ -245,11 +243,9 @@ class GeneticAlgorithmTests(unittest.TestCase):
                 return_value=initial_population[0],
             ),
             patch("evolutionary.individual.random.random", return_value=1.0),
-            patch("builtins.print") as print_mock,
+            self.assertNoLogs("evolutionary.algorithm", level="WARNING"),
         ):
             algorithm.run()
-
-        print_mock.assert_not_called()
 
     def test_run_cleans_memory_for_discarded_odd_child_pair(self) -> None:
         """Odd target sizes adapt complete pairs and release the excess pair."""
@@ -257,7 +253,6 @@ class GeneticAlgorithmTests(unittest.TestCase):
             population_size=5,
             max_generations=2,
             elites_count=2,
-            verbose=False,
         )
         initial_population = [
             make_individual(1),
@@ -317,7 +312,6 @@ class GeneticAlgorithmTests(unittest.TestCase):
             population_size=4,
             max_generations=1,
             elites_count=2,
-            verbose=False,
             fitness_evaluator=evaluate,
         )
         initial_population = [

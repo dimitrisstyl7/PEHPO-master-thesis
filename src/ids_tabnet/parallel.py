@@ -1,5 +1,6 @@
 """CPU-parallel Ray evaluation for TabNet hyperparameter batches."""
 
+import logging
 import time
 from collections.abc import Sequence
 from types import TracebackType
@@ -17,6 +18,8 @@ from ids_tabnet.evaluator import (
     prepare_tabnet_data,
 )
 from ids_tabnet.params import ModelParams
+
+logger = logging.getLogger(__name__)
 
 __pdoc__ = {
     "RayTabNetBatchEvaluator.__init__": False,
@@ -233,6 +236,13 @@ class RayTabNetBatchEvaluator:
                 result_ref = ready[0]
                 result_index, actor_index = pending.pop(result_ref)
                 fitnesses[result_index] = float(ray.get(result_ref))
+                logger.debug(
+                    "Candidate %d/%d done | actor=%d | fitness=%.4f",
+                    result_index + 1,
+                    len(candidate_model_params),
+                    actor_index,
+                    fitnesses[result_index],
+                )
 
                 if next_index < len(candidate_model_params):
                     # Refill the actor that became free, keeping dispatch bounded.

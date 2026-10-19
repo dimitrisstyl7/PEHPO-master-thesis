@@ -1,10 +1,14 @@
 """Genetic algorithm orchestrator for evolutionary hyperparameter optimization."""
 
+import logging
 import random
+import time
 
 from evolutionary.evaluation import BatchEvaluator
 from evolutionary.individual import Individual, SearchSpaceEntry
 from evolutionary.self_adaptive_sbx import SelfAdaptiveSBX
+
+logger = logging.getLogger(__name__)
 
 __pdoc__ = {
     "GeneticAlgorithm.__init__": False,
@@ -21,8 +25,10 @@ class GeneticAlgorithm:
 
     Wires together population initialization, tournament selection, Self-Adaptive
     SBX crossover, GLEAM mutation, and elitism into a full generational loop.
-    An ordered batch evaluator is injected at construction time, keeping the
-    GA independent of any specific evaluation domain.
+    Progress is reported through the module logger (`INFO` per generation);
+    the application configures handlers and levels. An ordered batch
+    evaluator is injected at construction time, keeping the GA independent of
+    any specific evaluation domain.
 
     Args:
         fitness_evaluator: Receives one ordered population slice of gene
@@ -36,7 +42,6 @@ class GeneticAlgorithm:
         mutation_rate: Per-gene mutation probability applied to each child.
         sub_areas_number: GLEAM partition count for bounded perturbation range.
         elites_count: Top individuals carried over untouched each generation.
-        verbose: If `True`, prints the best fitness and $\eta_c$ after each generation.
     """
 
     def __init__(
@@ -49,7 +54,6 @@ class GeneticAlgorithm:
         mutation_rate: float,
         sub_areas_number: int,
         elites_count: int = 1,
-        verbose: bool = True,
     ):
         self._fitness_evaluator = fitness_evaluator
         self._search_space = search_space
@@ -59,7 +63,6 @@ class GeneticAlgorithm:
         self._mutation_rate = mutation_rate
         self._sub_areas_number = sub_areas_number
         self._elites_count = elites_count
-        self._verbose = verbose
         self._crossover = SelfAdaptiveSBX()  # type: ignore[no-untyped-call]
 
     def run(self) -> Individual:
@@ -79,14 +82,26 @@ class GeneticAlgorithm:
         Returns:
             Individual with the highest fitness observed across all generations.
         """
+        logger.info(
+            "Starting GA: population=%d, generations=%d, elites=%d",
+            self._population_size,
+            self._max_generations,
+            self._elites_count,
+        )
         population = self._initialize_population()
+        start_time = time.perf_counter()
         self._evaluate_population(population)
+        logger.info(
+            "Initial population evaluated in %.1fs",
+            time.perf_counter() - start_time,
+        )
         best = max(
             population,
             key=lambda ind: ind.fitness,
         )  # Global best across all generations
 
         for generation in range(self._max_generations):
+            generation_start = time.perf_counter()
             # Carry over elites untouched — their fitness from this generation remains valid
             elites = self._get_elites(population)
             children: list[Individual] = []
@@ -130,12 +145,15 @@ class GeneticAlgorithm:
             if current_best.fitness > best.fitness:
                 best = current_best
 
-            if self._verbose:
-                print(
-                    f"Generation {generation + 1}/{self._max_generations} | "
-                    f"Best fitness: {best.fitness:.4f} | "
-                    f"\u03b7_c: {self._crossover.eta_c:.4f}",
-                )
+            logger.info(
+                "Generation %d/%d | best=%.4f | mean=%.4f | eta_c=%.4f | %.1fs",
+                generation + 1,
+                self._max_generations,
+                best.fitness,
+                sum(ind.fitness for ind in population) / len(population),
+                self._crossover.eta_c,
+                time.perf_counter() - generation_start,
+            )
 
         return best
 
