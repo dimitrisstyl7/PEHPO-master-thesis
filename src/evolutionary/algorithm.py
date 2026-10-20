@@ -53,7 +53,7 @@ class GeneticAlgorithm:
         tournament_size: int,
         mutation_rate: float,
         sub_areas_number: int,
-        elites_count: int = 1,
+        elites_count: int,
     ):
         self._fitness_evaluator = fitness_evaluator
         self._search_space = search_space
