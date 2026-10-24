@@ -119,4 +119,5 @@ class Individual:
         return new_genes
 
     def __str__(self) -> str:
-        return f"Individual(genes={self.genes}, fitness={self.fitness})"
+        genes_str = "\n".join(f"        {k}: {v}" for k, v in self.genes.items())
+        return f"Individual(\n    fitness={self.fitness},\n    genes={{\n{genes_str}\n    }}\n)"
