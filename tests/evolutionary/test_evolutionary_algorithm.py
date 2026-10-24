@@ -179,7 +179,7 @@ class GeneticAlgorithmTests(unittest.TestCase):
             make_individual(4),
         ]
         crossover = TrackingCrossover()
-        algorithm._crossover = crossover
+        algorithm._crossover_operator = crossover
 
         with (
             patch.object(
@@ -229,7 +229,7 @@ class GeneticAlgorithmTests(unittest.TestCase):
             make_individual(3),
             make_individual(4),
         ]
-        algorithm._crossover = TrackingCrossover()
+        algorithm._crossover_operator = TrackingCrossover()
 
         with (
             patch.object(
@@ -262,7 +262,7 @@ class GeneticAlgorithmTests(unittest.TestCase):
             make_individual(5),
         ]
         crossover = TrackingCrossover()
-        algorithm._crossover = crossover
+        algorithm._crossover_operator = crossover
 
         with (
             patch.object(
@@ -320,7 +320,7 @@ class GeneticAlgorithmTests(unittest.TestCase):
             make_individual(3),
             make_individual(4),
         ]
-        algorithm._crossover = TrackingCrossover()
+        algorithm._crossover_operator = TrackingCrossover()
         original_get_elites = algorithm._get_elites
         captured_elites: list[list[Individual]] = []
 

@@ -63,7 +63,7 @@ class GeneticAlgorithm:
         self._mutation_rate = mutation_rate
         self._sub_areas_number = sub_areas_number
         self._elites_count = elites_count
-        self._crossover = SelfAdaptiveSBX()  # type: ignore[no-untyped-call]
+        self._crossover_operator = SelfAdaptiveSBX()  # type: ignore[no-untyped-call]
 
     def run(self) -> Individual:
         r"""
@@ -112,7 +112,9 @@ class GeneticAlgorithm:
             while len(children) < target_children:
                 parent_1 = self._tournament_selection(population)
                 parent_2 = self._tournament_selection(population)
-                child_1, child_2 = self._crossover.crossover(parent_1, parent_2)
+                child_1, child_2 = self._crossover_operator.crossover(
+                    parent_1, parent_2
+                )
                 child_1.mutate()
                 child_2.mutate()
                 children.extend([child_1, child_2])
@@ -127,7 +129,7 @@ class GeneticAlgorithm:
             for _, _, discarded_child_1, discarded_child_2 in pairs[
                 retained_pair_count:
             ]:
-                self._crossover.discard_children(
+                self._crossover_operator.discard_children(
                     discarded_child_1,
                     discarded_child_2,
                 )
@@ -137,7 +139,9 @@ class GeneticAlgorithm:
 
             # Adapt eta_c based on whether each child outperformed its parents
             for parent_1, parent_2, child_1, child_2 in pairs:
-                self._crossover.update_etas(parent_1, parent_2, child_1, child_2)
+                self._crossover_operator.update_etas(
+                    parent_1, parent_2, child_1, child_2
+                )
             pairs.clear()  # Explicit cleanup — Individual refs accumulate across generations
 
             population = elites + children
@@ -151,7 +155,7 @@ class GeneticAlgorithm:
                 self._max_generations,
                 best.fitness,
                 sum(ind.fitness for ind in population) / len(population),
-                self._crossover.eta_c,
+                self._crossover_operator.eta_c,
                 time.perf_counter() - generation_start,
             )
 
