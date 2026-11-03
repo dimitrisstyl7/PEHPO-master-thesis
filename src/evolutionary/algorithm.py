@@ -28,7 +28,9 @@ class GeneticAlgorithm:
     Progress is reported through the module logger (`INFO` per generation);
     the application configures handlers and levels. An ordered batch
     evaluator is injected at construction time, keeping the GA independent of
-    any specific evaluation domain.
+    any specific evaluation domain. Optional stall-based stopping ends a run
+    after the global best fails to improve for the configured number of
+    consecutive generations.
 
     Args:
         fitness_evaluator: Receives one ordered population slice of gene
@@ -42,6 +44,8 @@ class GeneticAlgorithm:
         mutation_rate: Per-gene mutation probability applied to each child.
         sub_areas_number: GLEAM partition count for bounded perturbation range.
         elites_count: Top individuals carried over untouched each generation.
+        stall_generations: Consecutive generations without global-best
+            improvement before early stopping. `None` disables early stopping.
     """
 
     def __init__(
@@ -54,7 +58,13 @@ class GeneticAlgorithm:
         mutation_rate: float,
         sub_areas_number: int,
         elites_count: int,
+        stall_generations: int | None = None,
     ):
+        if stall_generations is not None and (
+            type(stall_generations) is not int or stall_generations < 1
+        ):
+            raise ValueError("stall_generations must be a positive integer or None.")
+
         self._fitness_evaluator = fitness_evaluator
         self._search_space = search_space
         self._population_size = population_size
@@ -63,6 +73,7 @@ class GeneticAlgorithm:
         self._mutation_rate = mutation_rate
         self._sub_areas_number = sub_areas_number
         self._elites_count = elites_count
+        self._stall_generations = stall_generations
         self._crossover_operator = SelfAdaptiveSBX()  # type: ignore[no-untyped-call]
 
     def run(self) -> Individual:
@@ -78,9 +89,12 @@ class GeneticAlgorithm:
         5. Clear the pair buffer.
         6. Replace population with elites + trimmed children.
         7. Track the global best individual across all generations.
+        8. Stop after `stall_generations` consecutive generations without
+           strict global-best improvement, when configured.
 
         Returns:
-            Individual with the highest fitness observed across all generations.
+            Individual with the highest fitness observed before the generation
+            budget or configured stall limit is reached.
         """
         logger.info(
             "Starting GA: population=%d, generations=%d, elites=%d",
@@ -99,6 +113,7 @@ class GeneticAlgorithm:
             population,
             key=lambda ind: ind.fitness,
         )  # Global best across all generations
+        stall_count = 0
 
         for generation in range(self._max_generations):
             generation_start = time.perf_counter()
@@ -148,6 +163,9 @@ class GeneticAlgorithm:
             current_best = max(population, key=lambda ind: ind.fitness)
             if current_best.fitness > best.fitness:
                 best = current_best
+                stall_count = 0
+            elif self._stall_generations is not None:
+                stall_count += 1
 
             logger.info(
                 "Generation %d/%d | best=%.4f | mean=%.4f | eta_c=%.4f | %.1fs",
@@ -158,6 +176,20 @@ class GeneticAlgorithm:
                 self._crossover_operator.eta_c,
                 time.perf_counter() - generation_start,
             )
+
+            if (
+                self._stall_generations is not None
+                and stall_count >= self._stall_generations
+            ):
+                logger.info(
+                    "Stopping early at generation %d/%d: global best did not "
+                    "improve for %d consecutive generations (stall limit=%d)",
+                    generation + 1,
+                    self._max_generations,
+                    stall_count,
+                    self._stall_generations,
+                )
+                break
 
         return best
 

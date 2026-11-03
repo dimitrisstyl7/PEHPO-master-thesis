@@ -32,9 +32,14 @@ def make_individual(gene: int, fitness: float = 0.0) -> Individual:
 class TrackingCrossover:
     """Minimal crossover double that exposes child-memory lifecycle."""
 
-    def __init__(self, child_values: tuple[int, int] = (10, 9)):
+    def __init__(
+        self,
+        child_values: tuple[int, int] = (10, 9),
+        child_value_sequence: list[tuple[int, int]] | None = None,
+    ):
         self.eta_c = 2.0
         self._child_values = child_values
+        self._child_value_sequence = child_value_sequence
         self._memory: dict[str, list[float]] = {}
         self.created: list[tuple[Individual, Individual]] = []
         self.updated: list[tuple[Individual, Individual]] = []
@@ -45,8 +50,11 @@ class TrackingCrossover:
         parent_2: Individual,
     ) -> tuple[Individual, Individual]:
         """Create deterministic children and register their memory entries."""
-        child_1 = make_individual(self._child_values[0])
-        child_2 = make_individual(self._child_values[1])
+        child_values = self._child_values
+        if self._child_value_sequence is not None:
+            child_values = self._child_value_sequence.pop(0)
+        child_1 = make_individual(child_values[0])
+        child_2 = make_individual(child_values[1])
         self._memory[child_1.id] = [1.0]
         self._memory[child_2.id] = [1.0]
         self.created.append((child_1, child_2))
@@ -77,6 +85,7 @@ def make_algorithm(
     elites_count: int,
     tournament_size: int = 1,
     fitness_evaluator: BatchEvaluator | None = None,
+    stall_generations: int | None = None,
 ) -> GeneticAlgorithm:
     """Build a GA using the in-memory deterministic objective."""
     return GeneticAlgorithm(
@@ -92,6 +101,7 @@ def make_algorithm(
         mutation_rate=0.0,
         sub_areas_number=2,
         elites_count=elites_count,
+        stall_generations=stall_generations,
     )
 
 
@@ -215,6 +225,148 @@ class GeneticAlgorithmTests(unittest.TestCase):
             if record.getMessage().startswith("Generation")
         ]
         self.assertEqual(len(generation_records), 2)
+
+    def test_run_without_stall_limit_runs_all_generations(self) -> None:
+        """The disabled default preserves the full generation budget."""
+        algorithm = make_algorithm(
+            population_size=4,
+            max_generations=3,
+            elites_count=2,
+        )
+        initial_population = [
+            make_individual(1),
+            make_individual(2),
+            make_individual(3),
+            make_individual(4),
+        ]
+        algorithm._crossover_operator = TrackingCrossover(child_values=(0, 0))
+
+        with (
+            patch.object(
+                algorithm,
+                "_initialize_population",
+                return_value=initial_population,
+            ),
+            patch.object(
+                algorithm,
+                "_tournament_selection",
+                return_value=initial_population[0],
+            ),
+            patch("evolutionary.individual.random.random", return_value=1.0),
+            patch.object(
+                algorithm,
+                "_get_elites",
+                wraps=algorithm._get_elites,
+            ) as get_elites,
+        ):
+            best = algorithm.run()
+
+        self.assertEqual(best.genes["gene"], 4)
+        self.assertEqual(get_elites.call_count, 3)
+
+    def test_run_stops_after_stall_limit_and_returns_global_best(self) -> None:
+        """The configured limit stops after consecutive non-improving generations."""
+        algorithm = make_algorithm(
+            population_size=4,
+            max_generations=5,
+            elites_count=2,
+            stall_generations=1,
+        )
+        initial_population = [
+            make_individual(1),
+            make_individual(2),
+            make_individual(3),
+            make_individual(4),
+        ]
+        algorithm._crossover_operator = TrackingCrossover()
+
+        with (
+            patch.object(
+                algorithm,
+                "_initialize_population",
+                return_value=initial_population,
+            ),
+            patch.object(
+                algorithm,
+                "_tournament_selection",
+                return_value=initial_population[0],
+            ),
+            patch("evolutionary.individual.random.random", return_value=1.0),
+            patch.object(
+                algorithm,
+                "_get_elites",
+                wraps=algorithm._get_elites,
+            ) as get_elites,
+            self.assertLogs("evolutionary.algorithm", level="INFO") as logs,
+        ):
+            best = algorithm.run()
+
+        self.assertEqual(best.genes["gene"], 10)
+        self.assertEqual(get_elites.call_count, 2)
+        self.assertTrue(
+            any(
+                record.getMessage().startswith("Stopping early at generation 2/5")
+                for record in logs.records
+            )
+        )
+
+    def test_run_resets_stall_counter_after_global_best_improves(self) -> None:
+        """A new global best starts a fresh sequence of stalled generations."""
+        algorithm = make_algorithm(
+            population_size=4,
+            max_generations=6,
+            elites_count=2,
+            stall_generations=2,
+        )
+        initial_population = [
+            make_individual(1),
+            make_individual(2),
+            make_individual(3),
+            make_individual(4),
+        ]
+        algorithm._crossover_operator = TrackingCrossover(
+            child_value_sequence=[(10, 9), (8, 7), (11, 6), (5, 4), (3, 2)]
+        )
+
+        with (
+            patch.object(
+                algorithm,
+                "_initialize_population",
+                return_value=initial_population,
+            ),
+            patch.object(
+                algorithm,
+                "_tournament_selection",
+                return_value=initial_population[0],
+            ),
+            patch("evolutionary.individual.random.random", return_value=1.0),
+            patch.object(
+                algorithm,
+                "_get_elites",
+                wraps=algorithm._get_elites,
+            ) as get_elites,
+        ):
+            best = algorithm.run()
+
+        self.assertEqual(best.genes["gene"], 11)
+        self.assertEqual(get_elites.call_count, 5)
+
+    def test_rejects_non_positive_stall_limit(self) -> None:
+        """Stall limits must be positive integers when enabled."""
+        for stall_generations in (0, -1):
+            with (
+                self.subTest(stall_generations=stall_generations),
+                self.assertRaisesRegex(
+                    ValueError,
+                    "stall_generations must be a positive integer",
+                ),
+            ):
+                make_algorithm(
+                    population_size=4,
+                    max_generations=3,
+                    elites_count=2,
+                    stall_generations=stall_generations,
+                )
 
     def test_run_emits_no_generation_logs_above_info_threshold(self) -> None:
         """Generation progress is INFO, so a WARNING threshold suppresses it."""

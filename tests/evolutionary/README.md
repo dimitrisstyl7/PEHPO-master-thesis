@@ -57,6 +57,10 @@ in-memory individuals and a deterministic objective:
 | `test_tournament_selection_returns_best_sampled_candidate`        | Verifies tournament selection returns the fittest sampled candidate.                                     |
 | `test_get_elites_sorts_and_copies_top_individuals`                | Verifies elites are sorted, retain fitness, and receive independent gene dictionaries.                   |
 | `test_run_tracks_best_and_keeps_exact_population_size`            | Verifies generation sizing, global best tracking, complete-pair adaptation, and per-generation logging.  |
+| `test_run_without_stall_limit_runs_all_generations`               | Verifies the disabled early-stop default preserves the full generation budget.                           |
+| `test_run_stops_after_stall_limit_and_returns_global_best`        | Verifies stalled generations trigger early stopping and return the global best.                          |
+| `test_run_resets_stall_counter_after_global_best_improves`        | Verifies a strict global-best improvement resets the consecutive-stall counter.                          |
+| `test_rejects_non_positive_stall_limit`                           | Verifies zero and negative stall limits raise `ValueError`.                                              |
 | `test_run_emits_no_generation_logs_above_info_threshold`          | Verifies generation progress is logged at INFO, not WARNING or above.                                    |
 | `test_run_cleans_memory_for_discarded_odd_child_pair`             | Verifies odd-target trimming adapts complete pairs and releases discarded-child memory.                  |
 | `test_evaluates_initial_and_child_slices_in_separate_batch_calls` | Verifies evaluation precedes selection, retains distinct elite fitness, and uses separate ordered calls. |
