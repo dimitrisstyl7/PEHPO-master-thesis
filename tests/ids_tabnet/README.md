@@ -1,10 +1,9 @@
 # IDS TabNet Tests
 
-This directory contains standard-library `unittest` coverage for the IDS
-TabNet parameter container, reusable data preparation, and evaluator. Most
-tests avoid production datasets, real TabNet training, and GPU hardware by
-using an in-memory fixture and mocks. One integration test intentionally runs
-tiny real CPU TabNet fits through local Ray actors.
+This directory contains standard-library `unittest` coverage for the IDS TabNet parameter container, search-space
+configuration, reusable data preparation, and evaluator. Most tests avoid production datasets, real TabNet training, and
+GPU hardware by using an in-memory fixture and mocks. One integration test intentionally runs tiny real CPU TabNet fits
+through local Ray actors.
 
 Run this category from the repository root with:
 
@@ -23,6 +22,14 @@ Tests the public behavior of `ids_tabnet.params.ModelParams`:
 | `test_preserves_hyperparameters_and_accepts_gamma_endpoints` | Verifies supplied hyperparameters remain unchanged and inclusive gamma endpoints `1.0` and `2.0` are accepted.                    |
 | `test_rejects_gamma_outside_inclusive_bounds`                | Verifies values below `1.0` and above `2.0` raise `ValueError` with the documented message.                                       |
 | `test_derives_virtual_batch_size_at_ghost_batch_boundary`    | Verifies Ghost Batch Normalization sizing: batch sizes below `128` use floor-half, while batch sizes of at least `128` use `128`. |
+
+### `test_ids_tabnet_config.py`
+
+Tests the `ids_tabnet.config.IDS_TABNET_SEARCH_SPACE`:
+
+| Test                                                      | Purpose                                                                                                     |
+|-----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| `test_search_space_entries_have_numeric_inclusive_ranges` | Verifies every entry declares numeric, ordered inclusive bounds and a supported `int` or `float` gene type. |
 
 ### `test_ids_tabnet_evaluator.py`
 

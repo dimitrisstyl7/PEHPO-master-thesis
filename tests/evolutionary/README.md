@@ -1,10 +1,8 @@
 # Evolutionary Tests
 
-This directory contains standard-library `unittest` coverage for evolutionary
-search-space configuration, individuals, SBX crossover, and genetic-algorithm
-orchestration. Tests use in-memory individuals, deterministic objectives, and
-patched random calls; they do not require datasets, model training, or GPU
-hardware.
+This directory contains standard-library `unittest` coverage for evolutionary individuals, SBX crossover, and
+genetic-algorithm orchestration. Tests use in-memory individuals, deterministic objectives, and patched random calls;
+they do not require datasets, model training, or GPU hardware.
 
 Run this category from the repository root with:
 
@@ -13,14 +11,6 @@ PYTHONPATH=src .venv/bin/python -m unittest discover -s tests/evolutionary
 ```
 
 ## Test modules
-
-### `test_evolutionary_config.py`
-
-Tests the IDS TabNet evolutionary search-space configuration:
-
-| Test                                                      | Purpose                                                                                                     |
-|-----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
-| `test_search_space_entries_have_numeric_inclusive_ranges` | Verifies every entry declares numeric, ordered inclusive bounds and a supported `int` or `float` gene type. |
 
 ### `test_evolutionary_individual.py`
 

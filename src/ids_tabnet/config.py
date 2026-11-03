@@ -1,4 +1,4 @@
-"""Configuration constants for evolutionary hyperparameter optimization."""
+"""Configuration constants for TabNet IDS hyperparameter optimization."""
 
 IDS_TABNET_SEARCH_SPACE = {
     "n_da": {"min": 8, "max": 64, "type": int},

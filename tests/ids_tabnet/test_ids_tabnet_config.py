@@ -1,11 +1,11 @@
-"""Tests for evolutionary search-space configuration."""
+"""Tests for TabNet IDS search-space configuration."""
 
 import unittest
 
-from evolutionary.config import IDS_TABNET_SEARCH_SPACE
+from ids_tabnet.config import IDS_TABNET_SEARCH_SPACE
 
 
-class EvolutionaryConfigTests(unittest.TestCase):
+class TabNetConfigTests(unittest.TestCase):
     """Verify search-space entries expose valid inclusive constraints."""
 
     def test_search_space_entries_have_numeric_inclusive_ranges(self) -> None:
