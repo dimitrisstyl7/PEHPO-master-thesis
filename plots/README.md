@@ -1,9 +1,12 @@
 # Execution plots
 
-Each run stores its history and figures in a timestamped directory. The timestamp
-matches the run log:
+Each run stores its log, history, and figures in timestamped directories sharing
+one run ID:
 
 ```text
+logs/<YYYYMMDD_HHMMSS>/
+└── run.log
+
 plots/<YYYYMMDD_HHMMSS>/
 ├── history.json
 ├── fig_a_convergence.png
@@ -17,6 +20,10 @@ plots/<YYYYMMDD_HHMMSS>/
 ```
 
 Generated run directories are ignored by git. This README remains tracked.
+
+The plotting package does not assign model-specific scales. Pass gene names that
+need logarithmic axes to plotting functions or `save_all`; other genes use linear
+axes. The IDS TabNet runner configures `lr` and `lambda_sparse` as logarithmic.
 
 ## Figure A: Convergence dashboard
 
@@ -79,5 +86,5 @@ from visualization.plots import save_all
 
 run_dir = "plots/<YYYYMMDD_HHMMSS>"
 history = HistoryRecorder.load(f"{run_dir}/history.json")
-save_all(history, run_dir)
+save_all(history, run_dir, log_scale_genes=("lr", "lambda_sparse"))
 ```

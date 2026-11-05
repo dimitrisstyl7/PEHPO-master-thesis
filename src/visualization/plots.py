@@ -1,6 +1,7 @@
 """Matplotlib figures generated from saved evolutionary run histories."""
 
 import math
+from collections.abc import Collection
 from pathlib import Path
 
 from matplotlib.axes import Axes
@@ -10,8 +11,6 @@ from matplotlib.colors import Normalize
 from matplotlib.figure import Figure
 
 from evolutionary.history import GenerationRecord, HistoryRecorder, IndividualSnapshot
-
-LOG_SCALE_GENES = frozenset({"lr", "lambda_sparse"})
 
 FIGURE_FILES = {
     "convergence": "fig_a_convergence",
@@ -67,7 +66,7 @@ def plot_convergence(history: HistoryRecorder) -> Figure:
         history: Recorded run data with at least one generation.
 
     Returns:
-        Agg-backed figure with a shared generation axis.
+        Figure rendered by Matplotlib's non-interactive Agg canvas.
     """
     records = _require_records(history)
     figure, axes = _create_figure(3, 1, width_per_column=10.0, height_per_row=3.0)
@@ -125,14 +124,18 @@ def plot_convergence(history: HistoryRecorder) -> Figure:
     return figure
 
 
-def plot_hyperparameter_evolution(history: HistoryRecorder) -> Figure:
+def plot_hyperparameter_evolution(
+    history: HistoryRecorder,
+    log_scale_genes: Collection[str] = (),
+) -> Figure:
     """Create per-gene population and best-individual trajectories.
 
     Args:
         history: Recorded run data with at least one generation.
+        log_scale_genes: Gene names to display on logarithmic value axes.
 
     Returns:
-        Agg-backed grid with one panel for every search-space gene.
+        Figure rendered by Matplotlib's non-interactive Agg canvas.
     """
     records = _require_records(history)
     gene_names = _gene_names(history)
@@ -167,7 +170,7 @@ def plot_hyperparameter_evolution(history: HistoryRecorder) -> Figure:
         )
         axis.plot(generations, means, marker="o", label="Population mean")
         axis.plot(generations, best_values, marker="o", label="Best individual")
-        if gene_name in LOG_SCALE_GENES:
+        if gene_name in log_scale_genes:
             axis.set_yscale("log")
         axis.set_title(gene_name)
         axis.set_xlabel("Generation")
@@ -186,7 +189,7 @@ def plot_final_population(history: HistoryRecorder) -> Figure:
         history: Recorded run data with at least one generation.
 
     Returns:
-        Agg-backed grid containing final-population histograms.
+        Figure rendered by Matplotlib's non-interactive Agg canvas.
     """
     records = _require_records(history)
     gene_names = _gene_names(history)
@@ -222,14 +225,18 @@ def plot_final_population(history: HistoryRecorder) -> Figure:
     return figure
 
 
-def plot_hyperparameter_vs_fitness(history: HistoryRecorder) -> Figure:
+def plot_hyperparameter_vs_fitness(
+    history: HistoryRecorder,
+    log_scale_genes: Collection[str] = (),
+) -> Figure:
     """Create gene-versus-fitness scatters for unique observed individuals.
 
     Args:
         history: Recorded run data with at least one generation.
+        log_scale_genes: Gene names to display on logarithmic value axes.
 
     Returns:
-        Agg-backed grid colored by generation with the best point highlighted.
+        Figure rendered by Matplotlib's non-interactive Agg canvas.
     """
     records = _require_records(history)
     gene_names = _gene_names(history)
@@ -273,7 +280,7 @@ def plot_hyperparameter_vs_fitness(history: HistoryRecorder) -> Figure:
             edgecolors="black",
             label="Best individual",
         )
-        if gene_name in LOG_SCALE_GENES:
+        if gene_name in log_scale_genes:
             axis.set_xscale("log")
         axis.set_title(gene_name)
         axis.set_xlabel("Hyperparameter value")
@@ -294,12 +301,17 @@ def _save_figure(figure: Figure, run_dir: Path, file_stem: str) -> None:
         figure.clear()
 
 
-def save_all(history: HistoryRecorder, run_dir: str | Path) -> None:
+def save_all(
+    history: HistoryRecorder,
+    run_dir: str | Path,
+    log_scale_genes: Collection[str] = (),
+) -> None:
     """Save all execution figures in PNG and PDF, then release each figure.
 
     Args:
         history: Recorded run data used to create the figures.
         run_dir: Directory receiving the figure files.
+        log_scale_genes: Gene names to display on logarithmic value axes.
     """
     output_dir = Path(run_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -310,7 +322,7 @@ def save_all(history: HistoryRecorder, run_dir: str | Path) -> None:
         FIGURE_FILES["convergence"],
     )
     _save_figure(
-        plot_hyperparameter_evolution(history),
+        plot_hyperparameter_evolution(history, log_scale_genes),
         output_dir,
         FIGURE_FILES["hyperparameter_evolution"],
     )
@@ -320,7 +332,7 @@ def save_all(history: HistoryRecorder, run_dir: str | Path) -> None:
         FIGURE_FILES["final_population"],
     )
     _save_figure(
-        plot_hyperparameter_vs_fitness(history),
+        plot_hyperparameter_vs_fitness(history, log_scale_genes),
         output_dir,
         FIGURE_FILES["hyperparameter_vs_fitness"],
     )

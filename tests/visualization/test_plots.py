@@ -9,6 +9,7 @@ from evolutionary.individual import SearchSpaceEntry
 from visualization.plots import (
     FIGURE_FILES,
     plot_convergence,
+    plot_hyperparameter_evolution,
     plot_hyperparameter_vs_fitness,
     save_all,
 )
@@ -115,10 +116,22 @@ class PlotTests(unittest.TestCase):
                 ),
             ]
         )
-        figure = plot_hyperparameter_vs_fitness(history)
+        figure = plot_hyperparameter_vs_fitness(history, log_scale_genes={"lr"})
         try:
             observation_points = figure.axes[0].collections[0].get_offsets()
             self.assertEqual(len(observation_points), 3)
             self.assertEqual(figure.axes[0].get_xscale(), "log")
         finally:
             figure.clear()
+
+    def test_log_scales_are_configured_by_caller(self) -> None:
+        """Gene scales stay caller-controlled rather than model-specific."""
+        history = make_single_generation_history()
+        evolution_figure = plot_hyperparameter_evolution(history)
+        scatter_figure = plot_hyperparameter_vs_fitness(history)
+        try:
+            self.assertEqual(evolution_figure.axes[0].get_yscale(), "linear")
+            self.assertEqual(scatter_figure.axes[0].get_xscale(), "linear")
+        finally:
+            evolution_figure.clear()
+            scatter_figure.clear()
