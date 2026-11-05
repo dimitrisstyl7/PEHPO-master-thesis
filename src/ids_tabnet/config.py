@@ -9,3 +9,6 @@ IDS_TABNET_SEARCH_SPACE = {
     "batch_size": {"min": 1024, "max": 16384, "type": int},
 }
 """Search space bounds and types for IDS TabNet hyperparameters."""
+
+IDS_TABNET_LOG_SCALE_GENES = ("lr", "lambda_sparse")
+"""IDS TabNet hyperparameters displayed on logarithmic plot axes."""
