@@ -24,6 +24,7 @@ Generated run directories are ignored by git. This README remains tracked.
 The plotting package does not assign model-specific scales. Pass gene names that
 need logarithmic axes to plotting functions or `save_all`; other genes use linear
 axes. The IDS TabNet runner configures `lr` and `lambda_sparse` as logarithmic.
+That configuration lives in `ids_tabnet.config.IDS_TABNET_LOG_SCALE_GENES`.
 
 ## Figure A: Convergence dashboard
 

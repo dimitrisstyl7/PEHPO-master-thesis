@@ -6,7 +6,7 @@ import ray
 
 from evolutionary.algorithm import GeneticAlgorithm
 from evolutionary.history import HistoryRecorder
-from ids_tabnet.config import IDS_TABNET_SEARCH_SPACE
+from ids_tabnet.config import IDS_TABNET_LOG_SCALE_GENES, IDS_TABNET_SEARCH_SPACE
 from ids_tabnet.parallel import RayTabNetBatchEvaluator
 from visualization.plots import save_all
 
@@ -26,7 +26,6 @@ TOURNAMENT_SIZE = 3
 MUTATION_RATE = 0.1  # 10% mutation rate
 SUB_AREAS_NUMBER = 3
 ELITES_COUNT = 3
-LOG_SCALE_GENES = ("lr", "lambda_sparse")
 
 
 def main() -> None:
@@ -90,7 +89,7 @@ def main() -> None:
             if history.records:
                 run_dir = Path("plots") / run_id
                 history.save(run_dir / "history.json")
-                save_all(history, run_dir, LOG_SCALE_GENES)
+                save_all(history, run_dir, IDS_TABNET_LOG_SCALE_GENES)
                 logger.info("Saved run history and plots to %s", run_dir)
         finally:
             ray.shutdown()
