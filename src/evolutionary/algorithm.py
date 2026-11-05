@@ -188,7 +188,9 @@ class GeneticAlgorithm:
         self._observe_generation(
             generation=generation + 1,
             population=next_population,
-            elite_ids=tuple(ind.id for ind in elites),
+            elite_ids=tuple(
+                ind.id for ind in self._get_top_individuals(next_population)
+            ),
             best_fitness=best.fitness,
             seconds=generation_seconds,
             stalled_stop=stalled_stop,

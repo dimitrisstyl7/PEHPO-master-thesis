@@ -3,6 +3,7 @@
 import random
 import unittest
 from collections.abc import Callable, Sequence
+from itertools import pairwise
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -572,10 +573,24 @@ class GeneticAlgorithmTests(unittest.TestCase):
         self.assertTrue(all(len(record.individuals) == 4 for record in records))
         self.assertTrue(all(len(record.elite_ids) == 2 for record in records))
         self.assertEqual(records[0].best_fitness, 4.0)
-        self.assertEqual(records[1].elite_ids, records[0].elite_ids)
-        for record in records:
+        for record, next_record in pairwise(records):
             individual_ids = {individual[0] for individual in record.individuals}
             self.assertTrue(set(record.elite_ids).issubset(individual_ids))
+            self.assertTrue(
+                set(record.elite_ids).issubset(
+                    {individual[0] for individual in next_record.individuals}
+                )
+            )
+        for record in records:
+            top_individuals = sorted(
+                record.individuals,
+                key=lambda individual: individual[2],
+                reverse=True,
+            )[:2]
+            self.assertEqual(
+                record.elite_ids,
+                tuple(individual[0] for individual in top_individuals),
+            )
 
     def test_generation_observer_marks_stall_stop_and_emits_no_later_records(
         self,
