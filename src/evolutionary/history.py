@@ -7,6 +7,11 @@ from typing import TypeAlias
 
 from evolutionary.individual import SearchSpaceEntry
 
+__pdoc__ = {
+    "HistoryRecorder.__init__": False,
+    "HistoryRecorder.__call__": True,
+}
+
 GeneValue: TypeAlias = int | float
 IndividualSnapshot: TypeAlias = tuple[str, dict[str, GeneValue], float]
 

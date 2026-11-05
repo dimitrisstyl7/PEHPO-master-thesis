@@ -4,6 +4,11 @@ import random
 import uuid
 from typing import TypedDict
 
+__pdoc__ = {
+    "Individual.__init__": False,
+    "Individual._generate_random_genes": True,
+}
+
 
 class SearchSpaceEntry(TypedDict):
     """Constraints and type definition for a single gene in the search space."""
@@ -14,12 +19,6 @@ class SearchSpaceEntry(TypedDict):
     """The inclusive maximum value allowed for the gene."""
     type: type
     """The Python type (typically `int` or `float`) used to cast the gene."""
-
-
-__pdoc__ = {
-    "Individual.__init__": False,
-    "Individual._generate_random_genes": True,
-}
 
 
 class Individual:
