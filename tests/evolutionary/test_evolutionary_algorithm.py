@@ -1,11 +1,15 @@
 """Tests for genetic-algorithm orchestration and generation lifecycle."""
 
+import random
 import unittest
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from evolutionary.algorithm import GeneticAlgorithm
 from evolutionary.evaluation import BatchEvaluator, serial_batch_evaluator
+from evolutionary.history import GenerationRecord, HistoryRecorder
 from evolutionary.individual import Individual, SearchSpaceEntry
 
 SEARCH_SPACE: dict[str, SearchSpaceEntry] = {
@@ -86,6 +90,7 @@ def make_algorithm(
     tournament_size: int = 1,
     fitness_evaluator: BatchEvaluator | None = None,
     stall_generations: int | None = None,
+    generation_observer: Callable[[GenerationRecord], None] | None = None,
 ) -> GeneticAlgorithm:
     """Build a GA using the in-memory deterministic objective."""
     return GeneticAlgorithm(
@@ -102,6 +107,7 @@ def make_algorithm(
         sub_areas_number=2,
         elites_count=elites_count,
         stall_generations=stall_generations,
+        generation_observer=generation_observer,
     )
 
 
@@ -511,3 +517,184 @@ class GeneticAlgorithmTests(unittest.TestCase):
                 [10, 9],
             ],
         )
+
+    def test_run_without_observer_preserves_evaluation_flow(self) -> None:
+        """The default observer setting keeps the existing evaluation batches."""
+        batch_sizes: list[int] = []
+
+        def evaluate(
+            gene_dicts: Sequence[dict[str, int | float]],
+        ) -> list[float]:
+            batch_sizes.append(len(gene_dicts))
+            return [score(genes) for genes in gene_dicts]
+
+        algorithm = make_algorithm(
+            population_size=4,
+            max_generations=2,
+            elites_count=2,
+            fitness_evaluator=evaluate,
+        )
+
+        best = algorithm.run()
+
+        self.assertEqual(batch_sizes, [4, 2, 2])
+        self.assertEqual(best.fitness, float(best.genes["gene"]))
+
+    def test_generation_observer_receives_initial_and_each_generation(self) -> None:
+        """The observer receives ordered, complete population snapshots."""
+        records: list[GenerationRecord] = []
+        algorithm = make_algorithm(
+            population_size=4,
+            max_generations=2,
+            elites_count=2,
+            generation_observer=records.append,
+        )
+        initial_population = [make_individual(value) for value in (1, 2, 3, 4)]
+        algorithm._crossover_operator = TrackingCrossover()
+
+        with (
+            patch.object(
+                algorithm,
+                "_initialize_population",
+                return_value=initial_population,
+            ),
+            patch.object(
+                algorithm,
+                "_tournament_selection",
+                return_value=initial_population[0],
+            ),
+            patch("evolutionary.individual.random.random", return_value=1.0),
+        ):
+            algorithm.run()
+
+        self.assertEqual([record.generation for record in records], [0, 1, 2])
+        self.assertTrue(all(len(record.individuals) == 4 for record in records))
+        self.assertTrue(all(len(record.elite_ids) == 2 for record in records))
+        self.assertEqual(records[0].best_fitness, 4.0)
+
+    def test_generation_observer_marks_stall_stop_and_emits_no_later_records(
+        self,
+    ) -> None:
+        """The final record marks stall termination and no later generation."""
+        records: list[GenerationRecord] = []
+        algorithm = make_algorithm(
+            population_size=4,
+            max_generations=5,
+            elites_count=2,
+            stall_generations=1,
+            generation_observer=records.append,
+        )
+        initial_population = [make_individual(value) for value in (1, 2, 3, 4)]
+        algorithm._crossover_operator = TrackingCrossover()
+
+        with (
+            patch.object(
+                algorithm,
+                "_initialize_population",
+                return_value=initial_population,
+            ),
+            patch.object(
+                algorithm,
+                "_tournament_selection",
+                return_value=initial_population[0],
+            ),
+            patch("evolutionary.individual.random.random", return_value=1.0),
+        ):
+            algorithm.run()
+
+        self.assertEqual([record.generation for record in records], [0, 1, 2])
+        self.assertEqual(
+            [record.stalled_stop for record in records],
+            [False, False, True],
+        )
+
+    def test_observer_preserves_seeded_result_and_evaluation_count(self) -> None:
+        """Recording consumes no randomness and adds no fitness evaluations."""
+        initial_random_state = random.getstate()
+
+        def run_with_observer(
+            observer: Callable[[GenerationRecord], None] | None,
+        ) -> tuple[dict[str, int | float], float, int]:
+            evaluation_count = 0
+
+            def evaluate(
+                gene_dicts: Sequence[dict[str, int | float]],
+            ) -> list[float]:
+                nonlocal evaluation_count
+                evaluation_count += len(gene_dicts)
+                return [score(genes) for genes in gene_dicts]
+
+            algorithm = make_algorithm(
+                population_size=6,
+                max_generations=3,
+                elites_count=2,
+                tournament_size=2,
+                fitness_evaluator=evaluate,
+                generation_observer=observer,
+            )
+            random.seed(2031)
+            best = algorithm.run()
+            return best.genes.copy(), best.fitness, evaluation_count
+
+        try:
+            baseline = run_with_observer(None)
+            observed = run_with_observer(lambda _record: None)
+        finally:
+            random.setstate(initial_random_state)
+
+        self.assertEqual(observed, baseline)
+
+    def test_generation_records_keep_gene_snapshots(self) -> None:
+        """Later changes to an individual cannot mutate an emitted snapshot."""
+        records: list[GenerationRecord] = []
+        algorithm = make_algorithm(
+            population_size=4,
+            max_generations=0,
+            elites_count=2,
+            generation_observer=records.append,
+        )
+        initial_population = [make_individual(value) for value in (1, 2, 3, 4)]
+
+        with patch.object(
+            algorithm,
+            "_initialize_population",
+            return_value=initial_population,
+        ):
+            algorithm.run()
+
+        snapshot = records[0].individuals[0][1]
+        initial_population[0].genes["gene"] = 10
+        initial_population[0].fitness = 10.0
+
+        self.assertEqual(snapshot, {"gene": 1})
+        self.assertEqual(records[0].individuals[0][2], 1.0)
+
+    def test_history_json_round_trip(self) -> None:
+        """Saved metadata and records load to an equivalent history."""
+        history = HistoryRecorder(
+            population_size=4,
+            generation_budget=2,
+            stall_limit=1,
+            search_space=SEARCH_SPACE,
+        )
+        history(
+            GenerationRecord(
+                generation=0,
+                individuals=(("individual-1", {"gene": 3}, 3.0),),
+                elite_ids=("individual-1",),
+                eta_c=2.0,
+                best_fitness=3.0,
+                seconds=0.25,
+            )
+        )
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "history.json"
+            history.save(path)
+            loaded = HistoryRecorder.load(path)
+
+        self.assertEqual(loaded.records, history.records)
+        self.assertEqual(loaded.population_size, history.population_size)
+        self.assertEqual(loaded.generation_budget, history.generation_budget)
+        self.assertEqual(loaded.stall_limit, history.stall_limit)
+        self.assertEqual(loaded.search_space, history.search_space)
