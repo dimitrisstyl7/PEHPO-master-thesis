@@ -81,6 +81,9 @@ Purpose: relate each gene to fitness across all unique observed individuals.
 
 Load saved history and call `save_all`; this does not evaluate fitness:
 
+From the repository root, start Python with `PYTHONPATH=src .venv/bin/python`,
+then run this snippet:
+
 ```python
 from evolutionary.history import HistoryRecorder
 from visualization.plots import save_all

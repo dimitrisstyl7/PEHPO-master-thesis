@@ -55,7 +55,7 @@ in-memory individuals and a deterministic objective:
 |------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
 | `test_initializes_and_evaluates_configured_population`                 | Verifies configured population size, bounded gene initialization, and objective evaluation.              |
 | `test_tournament_selection_returns_best_sampled_candidate`             | Verifies tournament selection returns the fittest sampled candidate.                                     |
-| `test_get_elites_sorts_and_copies_top_individuals`                     | Verifies elites are sorted, retain fitness, and receive independent gene dictionaries.                   |
+| `test_get_elites_sorts_and_copies_top_individuals`                     | Verifies elites are sorted, retain fitness and identity, and receive independent gene dictionaries.      |
 | `test_run_tracks_best_and_keeps_exact_population_size`                 | Verifies generation sizing, global best tracking, complete-pair adaptation, and per-generation logging.  |
 | `test_run_without_stall_limit_runs_all_generations`                    | Verifies the disabled early-stop default preserves the full generation budget.                           |
 | `test_run_stops_after_stall_limit_and_returns_global_best`             | Verifies stalled generations trigger early stopping and return the global best.                          |
@@ -65,7 +65,7 @@ in-memory individuals and a deterministic objective:
 | `test_run_cleans_memory_for_discarded_odd_child_pair`                  | Verifies odd-target trimming adapts complete pairs and releases discarded-child memory.                  |
 | `test_evaluates_initial_and_child_slices_in_separate_batch_calls`      | Verifies evaluation precedes selection, retains distinct elite fitness, and uses separate ordered calls. |
 | `test_run_without_observer_preserves_evaluation_flow`                  | Verifies the default observer setting preserves initial and per-generation evaluation batches.           |
-| `test_generation_observer_receives_initial_and_each_generation`        | Verifies snapshots include generation zero, each population, and elite identifiers.                      |
+| `test_generation_observer_receives_initial_and_each_generation`        | Verifies snapshots include generation zero, each population, and consistent elite identifiers.           |
 | `test_generation_observer_marks_stall_stop_and_emits_no_later_records` | Verifies the final early-stop snapshot is marked and no later records are emitted.                       |
 | `test_observer_preserves_seeded_result_and_evaluation_count`           | Verifies observation preserves seeded best output and adds no fitness evaluations.                       |
 | `test_generation_records_keep_gene_snapshots`                          | Verifies later individual changes cannot alter stored generation data.                                   |

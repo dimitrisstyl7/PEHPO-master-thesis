@@ -14,9 +14,13 @@ logger = logging.getLogger(__name__)
 
 __pdoc__ = {
     "GeneticAlgorithm.__init__": False,
+    "GeneticAlgorithm._run_generation": True,
+    "GeneticAlgorithm._create_next_population": True,
+    "GeneticAlgorithm._observe_generation": True,
     "GeneticAlgorithm._initialize_population": True,
     "GeneticAlgorithm._evaluate_population": True,
     "GeneticAlgorithm._tournament_selection": True,
+    "GeneticAlgorithm._get_top_individuals": True,
     "GeneticAlgorithm._get_elites": True,
 }
 
@@ -346,6 +350,7 @@ class GeneticAlgorithm:
                 sub_areas_number=elite.sub_areas_number,
                 genes=elite.genes.copy(),
                 fitness=elite.fitness,
+                individual_id=elite.id,
             )
             for elite in self._get_top_individuals(population)
         ]

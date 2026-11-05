@@ -9,6 +9,7 @@ from evolutionary.individual import SearchSpaceEntry
 from visualization.plots import (
     FIGURE_FILES,
     plot_convergence,
+    plot_final_population,
     plot_hyperparameter_evolution,
     plot_hyperparameter_vs_fitness,
     save_all,
@@ -135,3 +136,52 @@ class PlotTests(unittest.TestCase):
         finally:
             evolution_figure.clear()
             scatter_figure.clear()
+
+    def test_final_population_keeps_fitness_separate_from_gene_named_fitness(
+        self,
+    ) -> None:
+        """A search-space gene named fitness does not replace objective values."""
+        search_space: dict[str, SearchSpaceEntry] = {
+            "fitness": {"min": 0.0, "max": 20.0, "type": float},
+        }
+        history = HistoryRecorder(
+            population_size=2,
+            generation_budget=0,
+            stall_limit=None,
+            search_space=search_space,
+        )
+        history(
+            GenerationRecord(
+                generation=0,
+                individuals=(
+                    ("individual-a", {"fitness": 10.0}, 0.2),
+                    ("individual-b", {"fitness": 20.0}, 0.8),
+                ),
+                elite_ids=(),
+                eta_c=2.0,
+                best_fitness=0.8,
+                seconds=0.25,
+            )
+        )
+
+        figure = plot_final_population(history)
+        try:
+            fitness_histogram, gene_histogram = figure.axes[:2]
+            fitness_range = (
+                min(patch.get_x() for patch in fitness_histogram.patches),
+                max(
+                    patch.get_x() + patch.get_width()
+                    for patch in fitness_histogram.patches
+                ),
+            )
+            gene_range = (
+                min(patch.get_x() for patch in gene_histogram.patches),
+                max(
+                    patch.get_x() + patch.get_width()
+                    for patch in gene_histogram.patches
+                ),
+            )
+            self.assertLess(fitness_range[1], 1.0)
+            self.assertGreater(gene_range[0], 9.0)
+        finally:
+            figure.clear()

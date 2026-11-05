@@ -74,3 +74,10 @@ the categorized test suites under `tests/`.
 Each run saves `history.json` and four figures as PNG and PDF files under
 `plots/<run-id>/`. See [`plots/README.md`](plots/README.md) for the run-folder
 layout, figure details, and offline regeneration instructions.
+
+Run the optimizer from the repository root with the source directory on
+`PYTHONPATH`:
+
+```bash
+PYTHONPATH=src .venv/bin/python main.py
+```

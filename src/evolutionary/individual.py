@@ -34,6 +34,8 @@ class Individual:
         mutation_rate: Per-gene mutation probability for this individual.
         sub_areas_number: Number of sub-areas used for mutation range partitioning.
         genes: Optional gene dictionary. If `None`, random genes are generated.
+        fitness: Fitness score assigned after objective evaluation.
+        individual_id: Optional identity to preserve when copying an individual.
 
     Raises:
         ValueError: If `search_space` is `None`.
@@ -46,6 +48,7 @@ class Individual:
         sub_areas_number: int,
         genes: dict[str, int | float] | None = None,
         fitness: float = 0.0,
+        individual_id: str | None = None,
     ):
         if search_space is None:
             raise ValueError("Please provide a search space.")
@@ -55,7 +58,7 @@ class Individual:
         self.mutation_rate = mutation_rate
         self.sub_areas_number = sub_areas_number
         self.fitness = fitness
-        self.id = uuid.uuid4().hex
+        self.id = uuid.uuid4().hex if individual_id is None else individual_id
 
     def mutate(self) -> None:
         r"""

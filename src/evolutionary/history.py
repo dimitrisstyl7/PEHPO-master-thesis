@@ -13,7 +13,11 @@ IndividualSnapshot: TypeAlias = tuple[str, dict[str, GeneValue], float]
 
 @dataclass(frozen=True)
 class GenerationRecord:
-    """Immutable snapshot of one evaluated genetic-algorithm generation."""
+    """Immutable snapshot of one evaluated genetic-algorithm generation.
+
+    `elite_ids` identifies members of this population selected for elitist
+    survival into the next generation.
+    """
 
     generation: int
     individuals: tuple[IndividualSnapshot, ...]

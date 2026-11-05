@@ -178,6 +178,7 @@ class GeneticAlgorithmTests(unittest.TestCase):
         for elite, source in zip(elites, [population[1], population[2]]):
             self.assertIsNot(elite, source)
             self.assertIsNot(elite.genes, source.genes)
+            self.assertEqual(elite.id, source.id)
         elites[0].genes["gene"] = 0
         self.assertEqual(population[1].genes["gene"], 5)
 
@@ -571,6 +572,10 @@ class GeneticAlgorithmTests(unittest.TestCase):
         self.assertTrue(all(len(record.individuals) == 4 for record in records))
         self.assertTrue(all(len(record.elite_ids) == 2 for record in records))
         self.assertEqual(records[0].best_fitness, 4.0)
+        self.assertEqual(records[1].elite_ids, records[0].elite_ids)
+        for record in records:
+            individual_ids = {individual[0] for individual in record.individuals}
+            self.assertTrue(set(record.elite_ids).issubset(individual_ids))
 
     def test_generation_observer_marks_stall_stop_and_emits_no_later_records(
         self,

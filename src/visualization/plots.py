@@ -12,6 +12,14 @@ from matplotlib.figure import Figure
 
 from evolutionary.history import GenerationRecord, HistoryRecorder, IndividualSnapshot
 
+__pdoc__ = {
+    "_create_figure": True,
+    "_require_records": True,
+    "_gene_names": True,
+    "_best_individual": True,
+    "_save_figure": True,
+}
+
 FIGURE_FILES = {
     "convergence": "fig_a_convergence",
     "hyperparameter_evolution": "fig_b_hyperparameter_evolution",
@@ -26,6 +34,17 @@ def _create_figure(
     width_per_column: float = 5.0,
     height_per_row: float = 3.5,
 ) -> tuple[Figure, list[Axes]]:
+    """Create an Agg-backed figure and its row-major axes.
+
+    Args:
+        rows: Number of subplot rows.
+        columns: Number of subplot columns.
+        width_per_column: Figure width contributed by each column.
+        height_per_row: Figure height contributed by each row.
+
+    Returns:
+        Figure and its axes in row-major order.
+    """
     figure = Figure(
         figsize=(width_per_column * columns, height_per_row * rows),
         constrained_layout=True,
@@ -38,6 +57,17 @@ def _create_figure(
 
 
 def _require_records(history: HistoryRecorder) -> list[GenerationRecord]:
+    """Return records after verifying that all populations are non-empty.
+
+    Args:
+        history: Recorded run data to validate.
+
+    Returns:
+        Validated generation records.
+
+    Raises:
+        ValueError: If history has no records or a record has no individuals.
+    """
     if not history.records:
         raise ValueError("History must contain at least one generation.")
     for record in history.records:
@@ -47,6 +77,17 @@ def _require_records(history: HistoryRecorder) -> list[GenerationRecord]:
 
 
 def _gene_names(history: HistoryRecorder) -> list[str]:
+    """Return search-space gene names in their declared order.
+
+    Args:
+        history: Run metadata containing the search space.
+
+    Returns:
+        Gene names in search-space insertion order.
+
+    Raises:
+        ValueError: If the search space contains no genes.
+    """
     gene_names = list(history.search_space)
     if not gene_names:
         raise ValueError("History search space must contain at least one gene.")
@@ -54,6 +95,17 @@ def _gene_names(history: HistoryRecorder) -> list[str]:
 
 
 def _best_individual(record: GenerationRecord) -> IndividualSnapshot:
+    """Return the highest-fitness individual snapshot in one generation.
+
+    Args:
+        record: Generation containing the candidate individuals.
+
+    Returns:
+        Individual snapshot with the highest fitness.
+
+    Raises:
+        ValueError: If the generation contains no individuals.
+    """
     if not record.individuals:
         raise ValueError(f"Generation {record.generation} contains no individuals.")
     return max(record.individuals, key=lambda individual: individual[2])
@@ -203,20 +255,21 @@ def plot_final_population(history: HistoryRecorder) -> Figure:
     columns = min(3, len(panel_names))
     rows = math.ceil(len(panel_names) / columns)
     figure, axes = _create_figure(rows, columns)
-    values_by_panel = {
-        "fitness": [individual[2] for individual in final_individuals],
-        **{
-            gene_name: [individual[1][gene_name] for individual in final_individuals]
+    values_by_panel = [
+        [individual[2] for individual in final_individuals],
+        *[
+            [individual[1][gene_name] for individual in final_individuals]
             for gene_name in gene_names
-        },
-    }
+        ],
+    ]
 
-    for axis, panel_name in zip(
+    for axis, panel_name, values in zip(
         axes[: len(panel_names)],
         panel_names,
+        values_by_panel,
         strict=True,
     ):
-        axis.hist(values_by_panel[panel_name], bins="auto", color="tab:blue", alpha=0.8)
+        axis.hist(values, bins="auto", color="tab:blue", alpha=0.8)
         axis.set_title(panel_name)
         axis.set_xlabel("Value")
         axis.set_ylabel("Individuals")
@@ -294,6 +347,13 @@ def plot_hyperparameter_vs_fitness(
 
 
 def _save_figure(figure: Figure, run_dir: Path, file_stem: str) -> None:
+    """Save a figure as PNG and PDF, then release its artists.
+
+    Args:
+        figure: Figure to save.
+        run_dir: Directory receiving both output files.
+        file_stem: Shared filename stem without an extension.
+    """
     try:
         figure.savefig(run_dir / f"{file_stem}.png", dpi=150, format="png")
         figure.savefig(run_dir / f"{file_stem}.pdf", format="pdf")
