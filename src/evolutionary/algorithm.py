@@ -3,8 +3,10 @@
 import logging
 import random
 import time
+from collections.abc import Callable
 
 from evolutionary.evaluation import BatchEvaluator
+from evolutionary.history import GenerationRecord
 from evolutionary.individual import Individual, SearchSpaceEntry
 from evolutionary.self_adaptive_sbx import SelfAdaptiveSBX
 
@@ -46,6 +48,8 @@ class GeneticAlgorithm:
         elites_count: Top individuals carried over untouched each generation.
         stall_generations: Consecutive generations without global-best
             improvement before early stopping. `None` disables early stopping.
+        generation_observer: Optional callback receiving copied snapshots of
+            the evaluated initial population and each completed generation.
     """
 
     def __init__(
@@ -59,6 +63,7 @@ class GeneticAlgorithm:
         sub_areas_number: int,
         elites_count: int,
         stall_generations: int | None = None,
+        generation_observer: Callable[[GenerationRecord], None] | None = None,
     ):
         if stall_generations is not None and (
             type(stall_generations) is not int or stall_generations < 1
@@ -74,6 +79,7 @@ class GeneticAlgorithm:
         self._sub_areas_number = sub_areas_number
         self._elites_count = elites_count
         self._stall_generations = stall_generations
+        self._generation_observer = generation_observer
         self._crossover_operator = SelfAdaptiveSBX()  # type: ignore[no-untyped-call]
 
     def run(self) -> Individual:
@@ -91,6 +97,7 @@ class GeneticAlgorithm:
         7. Track the global best individual across all generations.
         8. Stop after `stall_generations` consecutive generations without
            strict global-best improvement, when configured.
+        9. Notify the optional observer with snapshots of evaluated populations.
 
         Returns:
             Individual with the highest fitness observed before the generation
@@ -105,15 +112,38 @@ class GeneticAlgorithm:
         population = self._initialize_population()
         start_time = time.perf_counter()
         self._evaluate_population(population)
+        initial_seconds = time.perf_counter() - start_time
         logger.info(
             "Initial population evaluated in %.1fs",
-            time.perf_counter() - start_time,
+            initial_seconds,
         )
         best = max(
             population,
             key=lambda ind: ind.fitness,
         )  # Global best across all generations
         stall_count = 0
+
+        if self._generation_observer is not None:
+            initial_elite_ids = tuple(
+                individual.id
+                for individual in sorted(
+                    population,
+                    key=lambda ind: ind.fitness,
+                    reverse=True,
+                )[: self._elites_count]
+            )
+            self._generation_observer(
+                GenerationRecord(
+                    generation=0,
+                    individuals=tuple(
+                        (ind.id, ind.genes.copy(), ind.fitness) for ind in population
+                    ),
+                    elite_ids=initial_elite_ids,
+                    eta_c=self._crossover_operator.eta_c,
+                    best_fitness=best.fitness,
+                    seconds=initial_seconds,
+                )
+            )
 
         for generation in range(self._max_generations):
             generation_start = time.perf_counter()
@@ -167,6 +197,11 @@ class GeneticAlgorithm:
             elif self._stall_generations is not None:
                 stall_count += 1
 
+            generation_seconds = time.perf_counter() - generation_start
+            stalled_stop = (
+                self._stall_generations is not None
+                and stall_count >= self._stall_generations
+            )
             logger.info(
                 "Generation %d/%d | best=%.4f | mean=%.4f | eta_c=%.4f | %.1fs",
                 generation + 1,
@@ -174,13 +209,26 @@ class GeneticAlgorithm:
                 best.fitness,
                 sum(ind.fitness for ind in population) / len(population),
                 self._crossover_operator.eta_c,
-                time.perf_counter() - generation_start,
+                generation_seconds,
             )
 
-            if (
-                self._stall_generations is not None
-                and stall_count >= self._stall_generations
-            ):
+            if self._generation_observer is not None:
+                self._generation_observer(
+                    GenerationRecord(
+                        generation=generation + 1,
+                        individuals=tuple(
+                            (ind.id, ind.genes.copy(), ind.fitness)
+                            for ind in population
+                        ),
+                        elite_ids=tuple(ind.id for ind in elites),
+                        eta_c=self._crossover_operator.eta_c,
+                        best_fitness=best.fitness,
+                        seconds=generation_seconds,
+                        stalled_stop=stalled_stop,
+                    )
+                )
+
+            if stalled_stop:
                 logger.info(
                     "Stopping early at generation %d/%d: global best did not "
                     "improve for %d consecutive generations (stall limit=%d)",
