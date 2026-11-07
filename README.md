@@ -58,6 +58,27 @@ pip-sync requirements.txt
 `pip-compile` resolves and writes pinned versions to `requirements.txt`; `pip-sync` makes the
 active virtual environment match that file exactly, including removing packages not listed in it.
 
+## Running the notebooks
+
+After installing the project dependencies, install JupyterLab separately in the
+active virtual environment:
+
+```bash
+python -m pip install jupyterlab
+```
+
+From the project root, launch JupyterLab in the notebooks directory so relative
+dataset paths resolve correctly:
+
+```bash
+cd notebooks
+jupyter lab
+```
+
+Open the notebooks and run their cells in order. See
+[`notebooks/README.md`](notebooks/README.md) for dataset prerequisites,
+notebook order, sampling settings, and output paths.
+
 ## Running the tests
 
 From the project root, run the same test command used by CI:
