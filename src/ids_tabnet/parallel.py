@@ -4,7 +4,7 @@ import logging
 import time
 from collections.abc import Sequence
 from types import TracebackType
-from typing import Any, Self
+from typing import Any, Self, cast
 
 import ray
 import torch
@@ -84,6 +84,14 @@ class _TabNetWorker:
     def evaluate(self, model_params: ModelParams, seed: int) -> float:
         """Evaluate one parameter set with the actor's fixed data partitions."""
         return self._evaluator.evaluate(model_params, seed=seed)
+
+    def evaluate_test(self, model_params: ModelParams, seed: int) -> tuple[float, str]:
+        """Score the held-out test partition and return its classification report."""
+        reports: list[str] = []
+        score = self._evaluator.evaluate_test(
+            model_params, seed=seed, report_callback=reports.append
+        )
+        return score, reports[0]
 
     def partition_signature(self) -> tuple[tuple[int, ...], ...]:
         """Return partition shapes for lightweight lifecycle verification."""
@@ -272,6 +280,28 @@ class RayTabNetBatchEvaluator:
     ) -> None:
         """Release evaluator-owned resources without shutting down Ray."""
         self.close()
+
+    def evaluate_test(self, genes: GeneDictionary) -> tuple[float, str]:
+        """
+        Evaluate the selected genes on the held-out test partition.
+
+        Call only after model selection. The same worker resources, partitions,
+        and evaluation seed used for fitness evaluation are reused.
+
+        Returns:
+            Test macro F1 and a per-class classification report.
+        """
+        if self._closed:
+            raise RuntimeError("RayTabNetBatchEvaluator is closed.")
+        model_params = _model_params_from_genes(genes)
+        return cast(
+            tuple[float, str],
+            ray.get(
+                self._actors[0].evaluate_test.remote(
+                    model_params, seed=self.evaluation_seed
+                )
+            ),
+        )
 
     def close(self) -> None:
         """
