@@ -102,3 +102,8 @@ Run the optimizer from the repository root with the source directory on
 ```bash
 PYTHONPATH=src .venv/bin/python main.py
 ```
+
+## Execution logs
+
+Each run saves its console output and final test report under `logs/<run-id>/`.
+See [`logs/README.md`](logs/README.md) for details.
