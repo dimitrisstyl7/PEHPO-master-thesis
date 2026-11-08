@@ -20,7 +20,6 @@ GENES = {
     "gamma": 1.5,
     "lambda_sparse": 1e-5,
     "lr": 0.02,
-    "batch_size": 128,
 }
 
 
@@ -482,7 +481,6 @@ class RayTabNetIntegrationTests(unittest.TestCase):
                 "gamma": 1.5,
                 "lambda_sparse": 1e-5,
                 "lr": 0.02,
-                "batch_size": 4,
             },
             {
                 "n_da": 4,
@@ -490,7 +488,6 @@ class RayTabNetIntegrationTests(unittest.TestCase):
                 "gamma": 1.5,
                 "lambda_sparse": 1e-5,
                 "lr": 0.02,
-                "batch_size": 4,
             },
         ]
 
@@ -537,7 +534,6 @@ class RayTabNetIntegrationTests(unittest.TestCase):
                             gamma=float(genes_for_candidate["gamma"]),
                             lambda_sparse=float(genes_for_candidate["lambda_sparse"]),
                             lr=float(genes_for_candidate["lr"]),
-                            batch_size=int(genes_for_candidate["batch_size"]),
                         ),
                         seed=11,
                     )
@@ -572,9 +568,8 @@ class RayTabNetIntegrationTests(unittest.TestCase):
             "gamma": 1.5,
             "lambda_sparse": 1e-5,
             "lr": 0.02,
-            "batch_size": 4,
         }
-        invalid_genes = {**valid_genes, "batch_size": 0}
+        invalid_genes = {**valid_genes, "n_steps": 0}
 
         ray.init(
             num_cpus=2,

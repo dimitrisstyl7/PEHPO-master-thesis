@@ -1,4 +1,4 @@
-"""Tests for TabNet model parameter validation and derived values."""
+"""Tests for TabNet model parameter validation."""
 
 import unittest
 
@@ -18,7 +18,6 @@ class ModelParamsTests(unittest.TestCase):
                     gamma=gamma,
                     lambda_sparse=1e-5,
                     lr=0.02,
-                    batch_size=256,
                 )
 
                 self.assertEqual(params.n_da, 16)
@@ -26,7 +25,6 @@ class ModelParamsTests(unittest.TestCase):
                 self.assertEqual(params.gamma, gamma)
                 self.assertEqual(params.lambda_sparse, 1e-5)
                 self.assertEqual(params.lr, 0.02)
-                self.assertEqual(params.batch_size, 256)
 
     def test_rejects_gamma_outside_inclusive_bounds(self) -> None:
         """Values outside the declared gamma interval raise the documented error."""
@@ -44,30 +42,4 @@ class ModelParamsTests(unittest.TestCase):
                     gamma=gamma,
                     lambda_sparse=1e-5,
                     lr=0.02,
-                    batch_size=256,
-                )
-
-    def test_derives_virtual_batch_size_at_ghost_batch_boundary(self) -> None:
-        """Batch sizes below 128 use floor-half; larger sizes use 128."""
-        expected_values = {
-            64: 32,
-            127: 63,
-            128: 128,
-            256: 128,
-        }
-
-        for batch_size, expected_virtual_batch_size in expected_values.items():
-            with self.subTest(batch_size=batch_size):
-                params = ModelParams(
-                    n_da=16,
-                    n_steps=5,
-                    gamma=1.5,
-                    lambda_sparse=1e-5,
-                    lr=0.02,
-                    batch_size=batch_size,
-                )
-
-                self.assertEqual(
-                    params.virtual_batch_size,
-                    expected_virtual_batch_size,
                 )

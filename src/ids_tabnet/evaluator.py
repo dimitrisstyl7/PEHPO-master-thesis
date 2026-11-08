@@ -227,10 +227,6 @@ class TabNetEvaluator:
                 "balanced_accuracy",
             ],  # Closer to Macro F1 than accuracy; both penalize minority class neglect
             weights=1,  # weighted sampling to handle class imbalance
-            max_epochs=20,  # Keep low for fast evolution
-            patience=5,  # Early stopping to prevent overfitting and save time during evolution
-            batch_size=int(params.batch_size),
-            virtual_batch_size=int(params.virtual_batch_size),
         )
 
         y_pred = clf.predict(X_score)

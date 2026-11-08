@@ -6,7 +6,6 @@ IDS_TABNET_SEARCH_SPACE = {
     "gamma": {"min": 1.0, "max": 2.0, "type": float},
     "lambda_sparse": {"min": 1e-6, "max": 0.1, "type": float},
     "lr": {"min": 0.001, "max": 0.05, "type": float},
-    "batch_size": {"min": 1024, "max": 16384, "type": int},
 }
 """Search space bounds and types for IDS TabNet hyperparameters."""
 

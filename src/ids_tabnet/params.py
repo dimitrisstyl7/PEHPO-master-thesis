@@ -9,9 +9,6 @@ class ModelParams:
     r"""
     Hyperparameter container for a TabNet model configuration.
 
-    `virtual_batch_size` is derived automatically from `batch_size` to satisfy
-    Ghost Batch Normalization constraints ($\ge 128 \to 128$, else `batch_size // 2`).
-
     Args:
         n_da: Width of the decision prediction layer ($n_d$) and attention embedding ($n_a$).
             Bigger values give more capacity with higher overfitting risk. Typical range is 8 to 64.
@@ -21,7 +18,6 @@ class ModelParams:
             correlated between layers. Valid range is 1.0 to 2.0.
         lambda_sparse: Extra sparsity loss coefficient. Higher values enforce sparser feature selection.
         lr: Initial optimizer learning rate. A large initial value with decay is recommended in the paper.
-        batch_size: Number of samples per training batch.
 
     Raises:
         ValueError: If `gamma` is not between 1.0 and 2.0.
@@ -34,7 +30,6 @@ class ModelParams:
         gamma: float,
         lambda_sparse: float,
         lr: float,
-        batch_size: int,
     ):
         if gamma < 1.0 or gamma > 2.0:
             raise ValueError("Gamma should be between 1.0 and 2.0.")
@@ -44,6 +39,3 @@ class ModelParams:
         self.gamma = gamma
         self.lambda_sparse = lambda_sparse
         self.lr = lr
-        self.batch_size = batch_size
-        # Safety check for Ghost Batch Normalization
-        self.virtual_batch_size = 128 if batch_size >= 128 else batch_size // 2

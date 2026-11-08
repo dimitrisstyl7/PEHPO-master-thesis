@@ -17,11 +17,10 @@ PYTHONPATH=src .venv/bin/python -m unittest discover -s tests/ids_tabnet
 
 Tests the public behavior of `ids_tabnet.params.ModelParams`:
 
-| Test                                                         | Purpose                                                                                                                           |
-|--------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| `test_preserves_hyperparameters_and_accepts_gamma_endpoints` | Verifies supplied hyperparameters remain unchanged and inclusive gamma endpoints `1.0` and `2.0` are accepted.                    |
-| `test_rejects_gamma_outside_inclusive_bounds`                | Verifies values below `1.0` and above `2.0` raise `ValueError` with the documented message.                                       |
-| `test_derives_virtual_batch_size_at_ghost_batch_boundary`    | Verifies Ghost Batch Normalization sizing: batch sizes below `128` use floor-half, while batch sizes of at least `128` use `128`. |
+| Test                                                         | Purpose                                                                                                        |
+|--------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| `test_preserves_hyperparameters_and_accepts_gamma_endpoints` | Verifies supplied hyperparameters remain unchanged and inclusive gamma endpoints `1.0` and `2.0` are accepted. |
+| `test_rejects_gamma_outside_inclusive_bounds`                | Verifies values below `1.0` and above `2.0` raise `ValueError` with the documented message.                    |
 
 ### `test_ids_tabnet_config.py`
 

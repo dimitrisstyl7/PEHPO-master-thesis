@@ -44,7 +44,6 @@ def _model_params_from_genes(genes: GeneDictionary) -> ModelParams:
         gamma=float(genes["gamma"]),
         lambda_sparse=float(genes["lambda_sparse"]),
         lr=float(genes["lr"]),
-        batch_size=int(genes["batch_size"]),
     )
 
 

@@ -24,7 +24,6 @@ class TabNetEvaluatorTests(unittest.TestCase):
             gamma=1.5,
             lambda_sparse=1e-5,
             lr=0.02,
-            batch_size=64,
         )
 
     def make_evaluator(self) -> TabNetEvaluator:
@@ -106,16 +105,16 @@ class TabNetEvaluatorTests(unittest.TestCase):
             verbose=0,
         )
 
-        fit_kwargs = classifier.fit.call_args.kwargs
-        self.assertIs(fit_kwargs["X_train"], evaluator.X_train)
-        self.assertIs(fit_kwargs["y_train"], evaluator.y_train)
-        self.assertEqual(fit_kwargs["eval_set"], [(evaluator.X_val, evaluator.y_val)])
-        self.assertEqual(fit_kwargs["eval_metric"], ["balanced_accuracy"])
-        self.assertEqual(fit_kwargs["weights"], 1)
-        self.assertEqual(fit_kwargs["max_epochs"], 20)
-        self.assertEqual(fit_kwargs["patience"], 5)
-        self.assertEqual(fit_kwargs["batch_size"], 64)
-        self.assertEqual(fit_kwargs["virtual_batch_size"], 32)
+        self.assertEqual(
+            classifier.fit.call_args.kwargs,
+            {
+                "X_train": evaluator.X_train,
+                "y_train": evaluator.y_train,
+                "eval_set": [(evaluator.X_val, evaluator.y_val)],
+                "eval_metric": ["balanced_accuracy"],
+                "weights": 1,
+            },
+        )
 
         classifier.predict.assert_called_once_with(evaluator.X_val)
         f1_args, f1_kwargs = f1_score.call_args
