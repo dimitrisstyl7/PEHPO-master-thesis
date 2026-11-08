@@ -150,25 +150,6 @@ class TabNetEvaluator:
         evaluator._initialize(device_name, partitions)
         return evaluator
 
-    def _initialize(
-        self,
-        device_name: DeviceName,
-        partitions: TabNetDataPartitions,
-    ) -> None:
-        """Validate device selection and attach prepared partition arrays."""
-        if device_name is DeviceName.CUDA and not torch.cuda.is_available():
-            raise RuntimeError(
-                "A CUDA-capable GPU was requested, but CUDA is not available. Use 'CPU' or 'AUTO' instead."
-            )
-
-        self.device_name = device_name
-        self.X_train = partitions.X_train
-        self.X_val = partitions.X_val
-        self.X_test = partitions.X_test
-        self.y_train = partitions.y_train
-        self.y_val = partitions.y_val
-        self.y_test = partitions.y_test
-
     def evaluate(self, params: ModelParams, seed: int = 0) -> float:
         """
         Trains a TabNetClassifier with the given model parameters and evaluates it on the validation set.
@@ -196,6 +177,25 @@ class TabNetEvaluator:
             Macro F1-score of the model on the test set.
         """
         return self._fit_and_score(params, self.X_test, self.y_test, seed)
+
+    def _initialize(
+        self,
+        device_name: DeviceName,
+        partitions: TabNetDataPartitions,
+    ) -> None:
+        """Validate device selection and attach prepared partition arrays."""
+        if device_name is DeviceName.CUDA and not torch.cuda.is_available():
+            raise RuntimeError(
+                "A CUDA-capable GPU was requested, but CUDA is not available. Use 'CPU' or 'AUTO' instead."
+            )
+
+        self.device_name = device_name
+        self.X_train = partitions.X_train
+        self.X_val = partitions.X_val
+        self.X_test = partitions.X_test
+        self.y_train = partitions.y_train
+        self.y_val = partitions.y_val
+        self.y_test = partitions.y_test
 
     def _fit_and_score(
         self, params: ModelParams, X_score: Any, y_score: Any, seed: int
