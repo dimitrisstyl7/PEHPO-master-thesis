@@ -4,7 +4,7 @@ import random
 import unittest
 from contextlib import redirect_stdout
 from io import StringIO
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import ray
@@ -245,6 +245,34 @@ class RayTabNetDispatchTests(unittest.TestCase):
 
         self.assertEqual(evaluator([]), [])
         self.assertEqual(submissions, [])
+
+    def test_final_test_uses_one_actor_and_evaluation_seed(self) -> None:
+        """The selected candidate uses the existing actor and fixed seed."""
+        evaluator, _ = self.make_evaluator()
+        actor = MagicMock()
+        evaluator._actors = (actor,)
+        result_ref = actor.evaluate_test.remote.return_value
+        with patch(
+            "ids_tabnet.parallel.ray.get", return_value=(0.75, "class report")
+        ) as ray_get:
+            result = evaluator.evaluate_test(GENES)
+
+        self.assertEqual(result, (0.75, "class report"))
+        ray_get.assert_called_once_with(result_ref)
+        params = actor.evaluate_test.remote.call_args.args[0]
+        self.assertEqual(params.n_da, 8)
+        self.assertEqual(params.n_steps, 3)
+        self.assertEqual(params.gamma, 1.5)
+        self.assertEqual(params.lambda_sparse, 1e-5)
+        self.assertEqual(params.lr, 0.02)
+        self.assertEqual(actor.evaluate_test.remote.call_args.kwargs, {"seed": 73})
+
+    def test_final_test_rejects_closed_evaluator(self) -> None:
+        """A closed evaluator cannot submit test work."""
+        evaluator, _ = self.make_evaluator()
+        evaluator._closed = True
+        with self.assertRaisesRegex(RuntimeError, "is closed"):
+            evaluator.evaluate_test(GENES)
 
     def test_dispatch_preserves_input_order_and_reuses_free_actor(self) -> None:
         """Out-of-order completion still returns aligned fitness values."""
@@ -539,8 +567,23 @@ class RayTabNetIntegrationTests(unittest.TestCase):
                     )
                     for genes_for_candidate in genes
                 ]
+                parallel_test_score, parallel_report = evaluator.evaluate_test(genes[0])
+                serial_reports: list[str] = []
+                serial_test_score = serial_evaluator.evaluate_test(
+                    ModelParams(
+                        n_da=2,
+                        n_steps=1,
+                        gamma=1.5,
+                        lambda_sparse=1e-5,
+                        lr=0.02,
+                    ),
+                    seed=11,
+                    report_callback=serial_reports.append,
+                )
 
             np.testing.assert_allclose(parallel_fitnesses, serial_fitnesses)
+            self.assertAlmostEqual(parallel_test_score, serial_test_score)
+            self.assertEqual(parallel_report, serial_reports[0])
         finally:
             if evaluator is not None:
                 evaluator.close()

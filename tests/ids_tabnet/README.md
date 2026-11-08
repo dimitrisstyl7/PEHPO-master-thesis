@@ -40,6 +40,7 @@ Tests `ids_tabnet.evaluator.TabNetEvaluator` without real model training:
 | `test_reproduces_fixed_seed_stratified_partitions`         | Verifies identical evaluator constructions produce identical fixed-seed stratified partitions and use the in-memory fixture instead of CSV loading.     |
 | `test_evaluate_configures_cpu_model_and_scores_validation` | Mocks model training, CUDA detection, and `f1_score` to verify CPU configuration, fit arguments, validation inputs, and macro-F1 forwarding.            |
 | `test_evaluate_test_scores_test_data`                      | Verifies `evaluate_test()` predicts and scores against held-out test data.                                                                              |
+| `test_test_report_uses_same_predictions_as_test_score`     | Verifies one test fit produces macro F1 and a per-class report from the same predictions.                                                               |
 | `test_evaluate_selects_cuda_when_available`                | Verifies CUDA availability selects the `"cuda"` device without requiring GPU hardware.                                                                  |
 
 ### `test_ids_tabnet_data.py`
@@ -69,13 +70,15 @@ dispatch boundaries plus local-Ray lifecycle and integration fixtures:
 | `test_close_after_ray_shutdown_is_safe`                                | Verifies cleanup tolerates the caller shutting down Ray first.                                                                     |
 | `test_close_with_stale_actor_handles_does_not_wait`                    | Verifies cleanup does not wait for resources that stale handles cannot release.                                                    |
 | `test_empty_batch_skips_remote_evaluation`                             | Verifies empty input returns without actor submissions.                                                                            |
+| `test_final_test_uses_one_actor_and_evaluation_seed`                   | Verifies final reporting reuses an existing actor and the evaluation seed.                                                         |
+| `test_final_test_rejects_closed_evaluator`                             | Verifies final reporting cannot submit work after cleanup.                                                                        |
 | `test_dispatch_preserves_input_order_and_reuses_free_actor`            | Verifies out-of-order completion preserves input order and keeps actors busy.                                                      |
 | `test_fixed_seed_does_not_change_driver_random_state`                  | Verifies one evaluation seed reaches workers without consuming driver randomness.                                                  |
 | `test_worker_failure_propagates_without_partial_result`                | Verifies worker errors raise instead of returning partial fitness values.                                                          |
 | `test_worker_failure_cancels_remaining_submissions`                    | Verifies a failed batch cancels other candidates that are still in flight.                                                         |
 | `test_worker_failure_preserves_error_if_cancellation_fails`            | Verifies cancellation cleanup errors do not mask the original worker failure.                                                      |
 | `test_gene_conversion_precedes_remote_submission`                      | Verifies invalid genes fail before remote work is submitted.                                                                       |
-| `test_real_tabnet_evaluation_matches_serial_and_uses_read_only_arrays` | Runs tiny real TabNet fits on two actors, checks shared arrays are read-only, and compares ordered fitness with serial evaluation. |
+| `test_real_tabnet_evaluation_matches_serial_and_uses_read_only_arrays` | Compares serial and Ray fitness and test reports from tiny real TabNet fits and checks shared arrays are read-only.                |
 | `test_real_worker_failure_preserves_error_and_allows_retry`            | Verifies a real actor failure remains visible, pending work is drained, and a later batch can run.                                 |
 
 Run parallel tests with:

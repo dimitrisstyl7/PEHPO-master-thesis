@@ -1,6 +1,7 @@
 """Model evaluation utilities for TabNet-based IDS experiments."""
 
 import typing
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
@@ -9,7 +10,7 @@ import torch
 from numpy.typing import NDArray
 from pandas.core.frame import DataFrame
 from pytorch_tabnet.tab_model import TabNetClassifier
-from sklearn.metrics import f1_score
+from sklearn.metrics import classification_report, f1_score
 from sklearn.model_selection import train_test_split
 
 from helpers.file_loader import load_csv
@@ -163,7 +164,13 @@ class TabNetEvaluator:
         """
         return self._fit_and_score(params, self.X_val, self.y_val, seed)
 
-    def evaluate_test(self, params: ModelParams, seed: int = 0) -> float:
+    def evaluate_test(
+        self,
+        params: ModelParams,
+        seed: int = 0,
+        *,
+        report_callback: Callable[[str], None] | None = None,
+    ) -> float:
         """
         Trains a TabNetClassifier with the given model parameters and evaluates it on the test set.
 
@@ -172,11 +179,15 @@ class TabNetEvaluator:
         Args:
             params: Hyperparameters for this TabNet evaluation run.
             seed: Random seed for reproducibility.
+            report_callback: Optional recipient for the per-class classification
+                report, computed from the same test predictions as the score.
 
         Returns:
             Macro F1-score of the model on the test set.
         """
-        return self._fit_and_score(params, self.X_test, self.y_test, seed)
+        return self._fit_and_score(
+            params, self.X_test, self.y_test, seed, report_callback
+        )
 
     def _initialize(
         self,
@@ -198,7 +209,12 @@ class TabNetEvaluator:
         self.y_test = partitions.y_test
 
     def _fit_and_score(
-        self, params: ModelParams, X_score: Any, y_score: Any, seed: int
+        self,
+        params: ModelParams,
+        X_score: Any,
+        y_score: Any,
+        seed: int,
+        report_callback: Callable[[str], None] | None = None,
     ) -> float:
         """
         Fit TabNet once and score on the provided split.
@@ -230,6 +246,11 @@ class TabNetEvaluator:
         )
 
         y_pred = clf.predict(X_score)
+
+        if report_callback is not None:
+            report_callback(
+                classification_report(y_score, y_pred, digits=4, zero_division=0)
+            )
 
         # Calculate and return Macro F1-Score - We use Macro because it averages the F1 of each class independently.
         # zero_division=0 prevents warnings when a model fails to predict rare classes.

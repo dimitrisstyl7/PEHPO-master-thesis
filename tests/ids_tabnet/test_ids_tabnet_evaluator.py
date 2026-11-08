@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+from sklearn.metrics import classification_report, f1_score
 
 from ids_tabnet.evaluator import DeviceName, TabNetEvaluator
 from ids_tabnet.params import ModelParams
@@ -156,6 +157,43 @@ class TabNetEvaluatorTests(unittest.TestCase):
         self.assertEqual(f1_kwargs, {"average": "macro", "zero_division": 0})
         self.assertEqual(result, 0.75)
         self.assertIsInstance(result, float)
+
+    @patch("ids_tabnet.evaluator.TabNetClassifier")
+    def test_test_report_uses_same_predictions_as_test_score(
+        self, classifier_type: MagicMock
+    ) -> None:
+        """One test fit produces both macro F1 and all per-class metrics."""
+        evaluator = self.make_evaluator()
+        classifier = classifier_type.return_value
+        predictions = evaluator.y_test.copy()
+        predictions[0] = 1 - predictions[0]
+        classifier.predict.return_value = predictions
+        reports: list[str] = []
+
+        result = evaluator.evaluate_test(
+            self.params, seed=23, report_callback=reports.append
+        )
+
+        classifier.fit.assert_called_once()
+        self.assertIs(classifier.fit.call_args.kwargs["X_train"], evaluator.X_train)
+        self.assertIs(
+            classifier.fit.call_args.kwargs["eval_set"][0][0], evaluator.X_val
+        )
+        classifier.predict.assert_called_once_with(evaluator.X_test)
+        self.assertEqual(
+            result,
+            f1_score(evaluator.y_test, predictions, average="macro", zero_division=0),
+        )
+        self.assertEqual(
+            reports,
+            [
+                classification_report(
+                    evaluator.y_test, predictions, digits=4, zero_division=0
+                )
+            ],
+        )
+        for heading in ("precision", "recall", "f1-score", "support"):
+            self.assertIn(heading, reports[0])
 
     @patch("ids_tabnet.evaluator.f1_score", return_value=0.5)
     @patch("ids_tabnet.evaluator.torch.cuda.is_available", return_value=True)

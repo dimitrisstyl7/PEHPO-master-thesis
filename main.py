@@ -84,6 +84,9 @@ def main() -> None:
             )
             best = algorithm.run()
             logger.info("Best individual: %s", best)
+            test_f1, test_report = evaluator.evaluate_test(best.genes)
+            logger.info("Held-out test macro F1: %.4f", test_f1)
+            logger.info("Held-out test classification report:\n%s", test_report)
     finally:
         try:
             if history.records:
