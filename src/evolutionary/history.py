@@ -5,15 +5,14 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import TypeAlias
 
-from evolutionary.individual import SearchSpaceEntry
+from evolutionary.individual import GeneDictionary, GeneValue, SearchSpaceEntry
 
 __pdoc__ = {
     "HistoryRecorder.__init__": False,
     "HistoryRecorder.__call__": True,
 }
 
-GeneValue: TypeAlias = int | float
-IndividualSnapshot: TypeAlias = tuple[str, dict[str, GeneValue], float]
+IndividualSnapshot: TypeAlias = tuple[str, GeneDictionary, float]
 
 
 @dataclass(frozen=True)
@@ -64,7 +63,7 @@ class HistoryRecorder:
         """Write run metadata and generation snapshots to a JSON file."""
         output_path = Path(path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        search_space_metadata: dict[str, dict[str, int | float | str]] = {}
+        search_space_metadata: dict[str, dict[str, GeneValue | str]] = {}
         for name, entry in self.search_space.items():
             if entry["type"] is int:
                 gene_type = "int"

@@ -3,8 +3,7 @@
 from collections.abc import Callable, Sequence
 from typing import TypeAlias
 
-GeneDictionary: TypeAlias = dict[str, int | float]
-"""Gene values for one candidate individual."""
+from evolutionary.individual import GeneDictionary
 
 ScalarObjective: TypeAlias = Callable[[GeneDictionary], float]
 """Objective that maps one gene dictionary to one scalar fitness."""

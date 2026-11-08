@@ -2,20 +2,26 @@
 
 import random
 import uuid
-from typing import TypedDict
+from typing import TypeAlias, TypedDict
 
 __pdoc__ = {
     "Individual.__init__": False,
     "Individual._generate_random_genes": True,
 }
 
+GeneValue: TypeAlias = int | float
+"""Numeric value assigned to an individual gene."""
+
+GeneDictionary: TypeAlias = dict[str, GeneValue]
+"""Gene values for one candidate individual."""
+
 
 class SearchSpaceEntry(TypedDict):
     """Constraints and type definition for a single gene in the search space."""
 
-    min: int | float
+    min: GeneValue
     """The inclusive minimum value allowed for the gene."""
-    max: int | float
+    max: GeneValue
     """The inclusive maximum value allowed for the gene."""
     type: type
     """The Python type (typically `int` or `float`) used to cast the gene."""
@@ -45,7 +51,7 @@ class Individual:
         search_space: dict[str, SearchSpaceEntry],
         mutation_rate: float,
         sub_areas_number: int,
-        genes: dict[str, int | float] | None = None,
+        genes: GeneDictionary | None = None,
         fitness: float = 0.0,
         individual_id: str | None = None,
     ):
@@ -53,7 +59,9 @@ class Individual:
             raise ValueError("Please provide a search space.")
 
         self.search_space = search_space
-        self.genes = self._generate_random_genes() if genes is None else genes
+        self.genes: GeneDictionary = (
+            self._generate_random_genes() if genes is None else genes
+        )
         self.mutation_rate = mutation_rate
         self.sub_areas_number = sub_areas_number
         self.fitness = fitness
@@ -105,14 +113,14 @@ class Individual:
 
             self.genes[key] = new_value
 
-    def _generate_random_genes(self) -> dict[str, int | float]:
+    def _generate_random_genes(self) -> GeneDictionary:
         """
         Generates a random valid gene configuration based on the search space.
 
         Returns:
             Gene configuration sampled uniformly within bounds, typed per the search space.
         """
-        new_genes: dict[str, int | float] = {}
+        new_genes: GeneDictionary = {}
         for key, bounds in self.search_space.items():
             if bounds["type"] is int:
                 new_genes[key] = random.randint(int(bounds["min"]), int(bounds["max"]))

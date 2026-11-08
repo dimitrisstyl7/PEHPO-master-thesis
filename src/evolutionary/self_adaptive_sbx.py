@@ -7,7 +7,7 @@ performance.
 import math
 import random
 
-from evolutionary.individual import Individual
+from evolutionary.individual import GeneValue, Individual
 
 __pdoc__ = {
     "SelfAdaptiveSBX.__init__": False,
@@ -185,7 +185,7 @@ class SelfAdaptiveSBX:
         beta_q: float,
         child_1_gene: float,
         child_2_gene: float,
-    ) -> tuple[int | float, int | float]:
+    ) -> tuple[GeneValue, GeneValue]:
         r"""
         Compute offspring gene values using the SBX midpoint–step decomposition.
 

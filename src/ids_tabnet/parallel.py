@@ -10,7 +10,7 @@ import ray
 import torch
 from ray.exceptions import ActorDiedError, ActorHandleNotFoundError, RayError
 
-from evolutionary.evaluation import GeneDictionary
+from evolutionary.individual import GeneDictionary
 from ids_tabnet.evaluator import (
     DeviceName,
     TabNetDataPartitions,

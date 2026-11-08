@@ -6,14 +6,14 @@ from collections.abc import Sequence
 
 from evolutionary.algorithm import GeneticAlgorithm
 from evolutionary.evaluation import BatchEvaluator, serial_batch_evaluator
-from evolutionary.individual import Individual, SearchSpaceEntry
+from evolutionary.individual import GeneDictionary, Individual, SearchSpaceEntry
 
 SEARCH_SPACE: dict[str, SearchSpaceEntry] = {
     "gene": {"min": 0, "max": 10, "type": int},
 }
 
 
-def score(genes: dict[str, int | float]) -> float:
+def score(genes: GeneDictionary) -> float:
     """Return the single gene as a deterministic scalar objective."""
     return float(genes["gene"])
 
@@ -140,10 +140,10 @@ class BatchEvaluationTests(unittest.TestCase):
 
     def test_run_skips_empty_child_batch_evaluator(self) -> None:
         """All-elite generations do not trigger empty evaluator calls."""
-        calls: list[list[dict[str, int | float]]] = []
+        calls: list[list[GeneDictionary]] = []
 
         def evaluate(
-            gene_dicts: Sequence[dict[str, int | float]],
+            gene_dicts: Sequence[GeneDictionary],
         ) -> list[float]:
             calls.append(list(gene_dicts))
             return [score(genes) for genes in gene_dicts]

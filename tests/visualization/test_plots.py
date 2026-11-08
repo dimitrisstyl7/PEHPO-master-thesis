@@ -5,7 +5,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from evolutionary.history import GenerationRecord, HistoryRecorder
-from evolutionary.individual import SearchSpaceEntry
+from evolutionary.individual import GeneDictionary, SearchSpaceEntry
 from visualization.plots import (
     FIGURE_FILES,
     plot_convergence,
@@ -38,7 +38,7 @@ def make_history(
 
 def make_record(
     generation: int,
-    individuals: tuple[tuple[str, dict[str, int | float], float], ...],
+    individuals: tuple[tuple[str, GeneDictionary, float], ...],
     elite_ids: tuple[str, ...] = (),
     stalled_stop: bool = False,
 ) -> GenerationRecord:

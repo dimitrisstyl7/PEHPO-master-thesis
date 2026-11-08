@@ -11,14 +11,14 @@ from unittest.mock import patch
 from evolutionary.algorithm import GeneticAlgorithm
 from evolutionary.evaluation import BatchEvaluator, serial_batch_evaluator
 from evolutionary.history import GenerationRecord, HistoryRecorder
-from evolutionary.individual import Individual, SearchSpaceEntry
+from evolutionary.individual import GeneDictionary, Individual, SearchSpaceEntry
 
 SEARCH_SPACE: dict[str, SearchSpaceEntry] = {
     "gene": {"min": 0, "max": 10, "type": int},
 }
 
 
-def score(genes: dict[str, int | float]) -> float:
+def score(genes: GeneDictionary) -> float:
     """Return the single gene as a deterministic maximization objective."""
     return float(genes["gene"])
 
@@ -454,12 +454,12 @@ class GeneticAlgorithmTests(unittest.TestCase):
 
     def test_evaluates_initial_and_child_slices_in_separate_batch_calls(self) -> None:
         """Evaluation forms a barrier before selection and excludes elites."""
-        calls: list[list[dict[str, int | float]]] = []
+        calls: list[list[GeneDictionary]] = []
         events: list[str] = []
         evaluation_number = 0
 
         def evaluate(
-            gene_dicts: Sequence[dict[str, int | float]],
+            gene_dicts: Sequence[GeneDictionary],
         ) -> list[float]:
             nonlocal evaluation_number
             events.append("evaluate")
@@ -525,7 +525,7 @@ class GeneticAlgorithmTests(unittest.TestCase):
         batch_sizes: list[int] = []
 
         def evaluate(
-            gene_dicts: Sequence[dict[str, int | float]],
+            gene_dicts: Sequence[GeneDictionary],
         ) -> list[float]:
             batch_sizes.append(len(gene_dicts))
             return [score(genes) for genes in gene_dicts]
@@ -634,11 +634,11 @@ class GeneticAlgorithmTests(unittest.TestCase):
 
         def run_with_observer(
             observer: Callable[[GenerationRecord], None] | None,
-        ) -> tuple[dict[str, int | float], float, int]:
+        ) -> tuple[GeneDictionary, float, int]:
             evaluation_count = 0
 
             def evaluate(
-                gene_dicts: Sequence[dict[str, int | float]],
+                gene_dicts: Sequence[GeneDictionary],
             ) -> list[float]:
                 nonlocal evaluation_count
                 evaluation_count += len(gene_dicts)
