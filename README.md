@@ -1,4 +1,4 @@
-# Parallel Evolutionary Algorithms for Hyperparameter Optimization in Artificial Intelligence Models
+# Parallel Evolutionary Algorithm for Hyperparameter Optimization in Artificial Intelligence Models
 
 ## Python version
 
