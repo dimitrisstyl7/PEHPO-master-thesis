@@ -88,12 +88,6 @@ PYTHONPATH=src .venv/bin/python -m unittest discover -s .
 This command uses the repository's configured source path and recursively executes
 the categorized test suites under `tests/`.
 
-## Execution plots
-
-Each run saves `history.json` and four figures as PNG and PDF files under
-`plots/<run-id>/`. See [`plots/README.md`](plots/README.md) for the run-folder
-layout, figure details, and offline regeneration instructions.
-
 ## Running the main script
 
 With the virtual environment active, run the optimizer from the repository root:
@@ -101,6 +95,12 @@ With the virtual environment active, run the optimizer from the repository root:
 ```bash
 PYTHONPATH=src python main.py
 ```
+
+## Execution plots
+
+Each run saves `history.json` and four figures as PNG and PDF files under
+`plots/<run-id>/`. See [`plots/README.md`](plots/README.md) for the run-folder
+layout, figure details, and offline regeneration instructions.
 
 ## Execution logs
 
