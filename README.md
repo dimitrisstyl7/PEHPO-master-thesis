@@ -10,7 +10,7 @@ Python 3.13.x
 git clone https://github.com/dimitrisstyl7/PEHPO-master-thesis.git
 ```
 
-## Virtual environment creation ([venv](https://docs.python.org/3/library/venv.html))
+## Virtual environment creation & activation ([uv](https://github.com/astral-sh/uv))
 
 - Go to project directory
 
@@ -18,15 +18,15 @@ git clone https://github.com/dimitrisstyl7/PEHPO-master-thesis.git
 cd PEHPO-master-thesis
 ```
 
-- Create and activate virtual environment (`.venv`)
-    - On Linux / Mac
-       ```bash
-       python3 -m venv .venv && source .venv/bin/activate
-       ```
-    - On Windows (PowerShell 7+)
-        ```powershell
-        python -m venv .venv && .venv\Scripts\Activate.ps1
-        ```
+- Install `uv` (if not already installed)
+    ```bash
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
+
+- Create and activate the Python 3.13 virtual environment (`.venv`)
+    ```bash
+    uv venv --python 3.13 .venv && source .venv/bin/activate
+    ```
 
 ## Install dependencies
 
@@ -34,10 +34,10 @@ Make sure the `.venv` virtual environment is active before installing dependenci
 
 ### Running the project (recommended)
 
-Install the already-pinned dependencies from `requirements.txt`:
+Install the already-pinned dependencies from `requirements.txt` using `uv pip`:
 
 ```bash
-python -m pip install -r requirements.txt
+uv pip install -r requirements.txt
 ```
 
 This is the standard setup path for users who want to run the project. It does not modify
@@ -46,16 +46,14 @@ This is the standard setup path for users who want to run the project. It does n
 ### Updating dependencies
 
 Only run these commands when intentionally changing the project's dependencies. First update
-`requirements.in`, then install [pip-tools](https://pypi.org/project/pip-tools/) and regenerate
-the pinned lockfile:
+`requirements.in`, then use `uv`'s built-in compilation and synchronization tools:
 
 ```bash
-python -m pip install pip-tools
-pip-compile requirements.in
-pip-sync requirements.txt
+uv pip compile requirements.in -o requirements.txt
+uv pip sync requirements.txt
 ```
 
-`pip-compile` resolves and writes pinned versions to `requirements.txt`; `pip-sync` makes the
+`uv pip compile` resolves and writes pinned versions to `requirements.txt`; `uv pip sync` makes the
 active virtual environment match that file exactly, including removing packages not listed in it.
 
 ## Running the notebooks
@@ -64,7 +62,7 @@ After installing the project dependencies, install JupyterLab separately in the
 active virtual environment:
 
 ```bash
-python -m pip install jupyterlab
+uv pip install jupyterlab
 ```
 
 From the project root, launch JupyterLab in the notebooks directory so relative
