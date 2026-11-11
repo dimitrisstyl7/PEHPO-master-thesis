@@ -11,6 +11,7 @@ on:
       - "requirements.txt"
       - ".github/workflows/**"
       - "mypy.ini"
+      - "!**/README.md"
   pull_request:
     branches: [ "main" ]
     paths:
@@ -21,6 +22,7 @@ on:
       - "requirements.txt"
       - ".github/workflows/**"
       - "mypy.ini"
+      - "!**/README.md"
   workflow_dispatch:
 
 permissions:
@@ -50,6 +52,7 @@ jobs:
               - "requirements.txt"
               - "mypy.ini"
               - ".github/workflows/**"
+              - "!**/README.md"
             tests:
               - "src/**"
               - "tests/**"
@@ -57,12 +60,14 @@ jobs:
               - "requirements.txt"
               - "mypy.ini"
               - ".github/workflows/**"
+              - "!**/README.md"
             docs:
               - "src/**"
               - "scripts/generate_docs/**"
               - "requirements.in"
               - "requirements.txt"
               - ".github/workflows/**"
+              - "!**/README.md"
 
   lint:
     needs: changes

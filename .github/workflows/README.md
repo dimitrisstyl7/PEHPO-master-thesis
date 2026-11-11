@@ -4,7 +4,8 @@
 
 `ci.yml` is the entry-point workflow. It runs on pushes and pull requests
 targeting `main` when a CI-relevant path changes, and supports a manual
-`workflow_dispatch` run.
+`workflow_dispatch` run. Changes to `README.md` files do not trigger CI or
+select reusable workflows.
 
 ## Selective job execution
 
@@ -20,6 +21,7 @@ the affected reusable workflows:
 | `mypy.ini`                            | lint, tests       |
 | `scripts/generate_docs/**`            | docs              |
 | `.github/workflows/**`                | lint, tests, docs |
+| `**/README.md`                        | none              |
 | Manual dispatch                       | lint, tests, docs |
 
 Requirements changes rebuild documentation because the documentation workflow
