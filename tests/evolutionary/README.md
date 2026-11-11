@@ -1,5 +1,7 @@
 # Evolutionary Tests
 
+[⬅ Back to main README](../../README.md#readme-files)
+
 This directory contains standard-library `unittest` coverage for evolutionary individuals, SBX crossover, and
 genetic-algorithm orchestration. Tests use in-memory individuals, deterministic objectives, and patched random calls;
 they do not require datasets, model training, or GPU hardware.

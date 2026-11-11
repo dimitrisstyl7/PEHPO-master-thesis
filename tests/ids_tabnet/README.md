@@ -1,5 +1,7 @@
 # IDS TabNet Tests
 
+[⬅ Back to main README](../../README.md#readme-files)
+
 This directory contains standard-library `unittest` coverage for the IDS TabNet parameter container, search-space
 configuration, reusable data preparation, and evaluator. Most tests avoid production datasets, real TabNet training, and
 GPU hardware by using an in-memory fixture and mocks. One integration test intentionally runs tiny real CPU TabNet fits

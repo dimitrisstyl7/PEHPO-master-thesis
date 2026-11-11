@@ -1,5 +1,7 @@
 # Execution plots
 
+[⬅ Back to main README](../README.md#readme-files)
+
 Each run stores its log, history, and figures in timestamped directories sharing
 one run ID:
 

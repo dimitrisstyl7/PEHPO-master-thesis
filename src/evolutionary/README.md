@@ -1,5 +1,7 @@
 # Evolutionary optimization
 
+[⬅ Back to main README](../../README.md#readme-files)
+
 This package implements the genetic search and its reusable components:
 
 - `algorithm.py`: population initialization, selection, evaluation, and

@@ -1,5 +1,7 @@
 # `generate_docs.sh`
 
+[⬅ Back to main README](../../README.md#readme-files)
+
 This script generates HTML API docs for the `src` package with `pdoc`.
 
 ## Script lines explained

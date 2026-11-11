@@ -1,5 +1,7 @@
 # IDS TabNet
 
+[⬅ Back to main README](../../README.md#readme-files)
+
 This package prepares and evaluates TabNet models for intrusion detection:
 
 - `config.py`: search-space and plot-scale configuration for five tuned parameters.

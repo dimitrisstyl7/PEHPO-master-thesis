@@ -1,5 +1,7 @@
 # Tests
 
+[⬅ Back to main README](../README.md#readme-files)
+
 The test suite uses Python's `unittest` framework. From the repository root:
 
 ```bash

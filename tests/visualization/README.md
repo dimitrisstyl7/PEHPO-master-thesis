@@ -1,5 +1,7 @@
 # Visualization Tests
 
+[⬅ Back to main README](../../README.md#readme-files)
+
 This directory contains standard-library `unittest` coverage for figures generated
 from synthetic `HistoryRecorder` data. Tests do not run the genetic algorithm or
 fitness evaluations.

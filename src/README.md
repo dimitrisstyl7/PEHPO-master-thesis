@@ -1,5 +1,7 @@
 # Source code
 
+[⬅ Back to main README](../README.md#readme-files)
+
 The project runner in [`main.py`](../main.py) combines these packages:
 
 - [`evolutionary/`](evolutionary/README.md): genetic algorithm, individuals,

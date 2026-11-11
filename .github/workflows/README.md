@@ -1,5 +1,7 @@
 # GitHub Actions Workflows
 
+[⬅ Back to main README](../../README.md#readme-files)
+
 `ci.yml` is the entry-point workflow. It runs on pushes and pull requests
 targeting `main` when a CI-relevant path changes, and supports a manual
 `workflow_dispatch` run.

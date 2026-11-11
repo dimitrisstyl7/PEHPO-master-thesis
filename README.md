@@ -1,5 +1,20 @@
 # Parallel Evolutionary Algorithm for Hyperparameter Optimization in Artificial Intelligence Models
 
+## Table of contents
+
+- [Python version](#python-version)
+- [Clone repository](#clone-repository)
+- [Virtual environment creation & activation (uv)](#virtual-environment-creation--activation-uv)
+- [Install dependencies](#install-dependencies)
+    - [Running the project (recommended)](#running-the-project-recommended)
+    - [Updating dependencies](#updating-dependencies)
+- [Running the notebooks](#running-the-notebooks)
+- [Running the tests](#running-the-tests)
+- [Running the main script](#running-the-main-script)
+- [Execution plots](#execution-plots)
+- [Execution logs](#execution-logs)
+- [README files](#readme-files)
+
 ## Python version
 
 Python 3.13.x
@@ -106,3 +121,25 @@ layout, figure details, and offline regeneration instructions.
 
 Each run saves its console output and final test report under `logs/<run-id>/`.
 See [`logs/README.md`](logs/README.md) for details.
+
+## README files
+
+| README | Description |
+|--------|-------------|
+| [`.github/workflows/README.md`](.github/workflows/README.md) | CI, lint, test, and docs workflows |
+| [`datasets/README.md`](datasets/README.md) | Dataset inputs and generated data |
+| [`datasets/cicids2017/README.md`](datasets/cicids2017/README.md) | CICIDS2017 dataset citation and details |
+| [`logs/README.md`](logs/README.md) | Execution logs |
+| [`notebooks/README.md`](notebooks/README.md) | Data-preparation notebooks |
+| [`plots/README.md`](plots/README.md) | Execution plots and run-folder layout |
+| [`scripts/README.md`](scripts/README.md) | Repository utility scripts |
+| [`scripts/generate_docs/README.md`](scripts/generate_docs/README.md) | API docs generation with `pdoc` |
+| [`src/README.md`](src/README.md) | Source code overview |
+| [`src/evolutionary/README.md`](src/evolutionary/README.md) | Evolutionary optimization package |
+| [`src/helpers/README.md`](src/helpers/README.md) | Helper utilities |
+| [`src/ids_tabnet/README.md`](src/ids_tabnet/README.md) | IDS TabNet package |
+| [`src/visualization/README.md`](src/visualization/README.md) | Visualization package |
+| [`tests/README.md`](tests/README.md) | Test suite overview |
+| [`tests/evolutionary/README.md`](tests/evolutionary/README.md) | Evolutionary tests |
+| [`tests/ids_tabnet/README.md`](tests/ids_tabnet/README.md) | IDS TabNet tests |
+| [`tests/visualization/README.md`](tests/visualization/README.md) | Visualization tests |

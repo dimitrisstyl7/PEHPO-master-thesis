@@ -1,5 +1,7 @@
 # Notebooks
 
+[⬅ Back to main README](../README.md#readme-files)
+
 These notebooks prepare CICIDS2017 data for experiments and local testing. Run
 their cells in order, with `notebooks/` as the working directory. Both notebooks
 load their full input into memory and overwrite their output files when rerun.
