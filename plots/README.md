@@ -36,9 +36,10 @@ runtime.
 - **Axes:** generation is the shared x-axis. Top panel shows best-so-far fitness,
   population mean, and population worst fitness. Shaded band shows population
   minimum to maximum. Middle panel shows `eta_c`; bottom panel shows seconds.
-- **Colors and markers:** Matplotlib default colors distinguish the fitness
-  lines and band. Circular markers identify measured generations. `eta_c` uses
-  purple, runtime uses green, and a dashed red vertical line marks stall stop.
+- **Colors and markers:** best-so-far is green, population mean is orange, and
+  population worst is red. Circular markers identify measured generations.
+  `eta_c` uses purple, runtime uses brown, and a dashed red vertical line marks
+  stall stop.
 - **Interpretation:** a rising best-so-far line means the run found better
   fitness. The band shows population spread. A stall marker means the configured
   stall limit ended the run; no marker means the run reached its generation
@@ -49,8 +50,8 @@ runtime.
 Purpose: show how each search-space gene changes across generations.
 
 - **Axes:** one panel per gene, with generation on x and gene value on y.
-- **Colors and markers:** dots show individual values; separate Matplotlib
-  default colors show population mean and the best-fitness individual's value.
+- **Colors and markers:** blue dots show individual values, orange lines show
+  population means, and green lines show the best-fitness individual's value.
   Circular markers identify means and best-individual values.
 - **Scale and interpretation:** `lr` and `lambda_sparse` use a logarithmic y-axis.
   Tightening dots indicate population convergence; movement in the best-individual

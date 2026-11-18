@@ -92,6 +92,25 @@ class PlotTests(unittest.TestCase):
             labels = [line.get_label() for line in figure.axes[0].lines]
             self.assertNotIn("Stall stop", labels)
             self.assertEqual(len(figure.axes[0].lines), 3)
+            self.assertEqual(
+                [line.get_color() for line in figure.axes[0].lines],
+                ["tab:green", "tab:orange", "tab:red"],
+            )
+            self.assertEqual(figure.axes[2].lines[0].get_color(), "tab:brown")
+        finally:
+            figure.clear()
+
+    def test_hyperparameter_lines_match_convergence_colors(self) -> None:
+        """Population mean and best individual match convergence colors."""
+        figure = plot_hyperparameter_evolution(make_single_generation_history())
+        try:
+            self.assertEqual(
+                [(line.get_label(), line.get_color()) for line in figure.axes[0].lines],
+                [
+                    ("Population mean", "tab:orange"),
+                    ("Best individual", "tab:green"),
+                ],
+            )
         finally:
             figure.clear()
 

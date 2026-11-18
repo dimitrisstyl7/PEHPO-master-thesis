@@ -138,9 +138,27 @@ def plot_convergence(history: HistoryRecorder) -> Figure:
         alpha=0.2,
         label="Population min–max",
     )
-    axes[0].plot(generations, best_fitness, marker="o", label="Best so far")
-    axes[0].plot(generations, mean_fitness, marker="o", label="Population mean")
-    axes[0].plot(generations, worst_fitness, marker="o", label="Population worst")
+    axes[0].plot(
+        generations,
+        best_fitness,
+        marker="o",
+        color="tab:green",
+        label="Best so far",
+    )
+    axes[0].plot(
+        generations,
+        mean_fitness,
+        marker="o",
+        color="tab:orange",
+        label="Population mean",
+    )
+    axes[0].plot(
+        generations,
+        worst_fitness,
+        marker="o",
+        color="tab:red",
+        label="Population worst",
+    )
     axes[0].set_ylabel("Fitness")
     axes[0].legend()
 
@@ -156,7 +174,7 @@ def plot_convergence(history: HistoryRecorder) -> Figure:
         generations,
         [record.seconds for record in records],
         marker="o",
-        color="tab:green",
+        color="tab:brown",
     )
     axes[2].set_ylabel("Seconds")
     axes[2].set_xlabel("Generation")
@@ -220,8 +238,20 @@ def plot_hyperparameter_evolution(
             alpha=0.35,
             label="Individuals",
         )
-        axis.plot(generations, means, marker="o", label="Population mean")
-        axis.plot(generations, best_values, marker="o", label="Best individual")
+        axis.plot(
+            generations,
+            means,
+            marker="o",
+            color="tab:orange",
+            label="Population mean",
+        )
+        axis.plot(
+            generations,
+            best_values,
+            marker="o",
+            color="tab:green",
+            label="Best individual",
+        )
         if gene_name in log_scale_genes:
             axis.set_yscale("log")
         axis.set_title(gene_name)
